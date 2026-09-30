@@ -1,17 +1,18 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+// 在深色画布上发光的六种类型色，亮度接近，只靠色相区分。
 export const TYPE_COLORS = {
-  concept: "#32a8c7",
-  quantity: "#007aff",
-  law: "#34c759",
-  formula: "#af52de",
-  method: "#ff9f0a",
-  application: "#ff375f",
+  concept: "#5ad1e6",
+  quantity: "#7aa2ff",
+  law: "#6fdc9a",
+  formula: "#c792ff",
+  method: "#ffc266",
+  application: "#ff8a9a",
 };
 
 // 节点不超过此数量时使用大节点（名称写在圆内），否则用小节点（名称写在圆下方）。
 const ROOMY_LIMIT = 14;
-const ROOMY_SIZE = { width: 900, height: 430 };
+const ROOMY_SIZE = { width: 1100, height: 640 };
 const COMPACT_AREA_PER_NODE = 14500;   // 每个小节点分到的画布面积（世界坐标）
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 3;
@@ -71,7 +72,7 @@ function computeLayout(graph, chapters, size, roomy) {
     .filter(([a, b]) => a && b);
 
   const gap = roomy ? 36 : 62;          // 两节点圆心的最小间距余量
-  const restLength = roomy ? 150 : 95;
+  const restLength = roomy ? 200 : 95;
   for (let step = 0; step < 300; step += 1) {
     const cooling = 1 - step / 300;
     nodes.forEach(node => { node.fx = 0; node.fy = 0; });
@@ -116,17 +117,29 @@ function computeLayout(graph, chapters, size, roomy) {
   return positions;
 }
 
-function edgeCoordinates(source, target, directed) {
+/** 两点间的轻微弧线，起止点让出节点半径，避免线压在圆上。 */
+function edgePath(source, target, sourceRadius, targetRadius) {
   const dx = target.x - source.x;
   const dy = target.y - source.y;
   const length = Math.hypot(dx, dy) || 1;
-  const ux = dx / length;
-  const uy = dy / length;
+  const bend = Math.min(40, length * 0.12);
+  const cx = (source.x + target.x) / 2 - (dy / length) * bend;
+  const cy = (source.y + target.y) / 2 + (dx / length) * bend;
+  const trim = (from, radius) => {
+    const ex = cx - from.x;
+    const ey = cy - from.y;
+    const d = Math.hypot(ex, ey) || 1;
+    return [from.x + (ex / d) * radius, from.y + (ey / d) * radius];
+  };
+  const [x1, y1] = trim(source, sourceRadius + 3);
+  const [x2, y2] = trim(target, targetRadius + 4);
   return {
-    x1: source.x + ux * (source.radius + 3),
-    y1: source.y + uy * (source.radius + 3),
-    x2: target.x - ux * (target.radius + (directed ? 8 : 3)),
-    y2: target.y - uy * (target.radius + (directed ? 8 : 3)),
+    d: `M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}`,
+    // t 处的曲线坐标，用来放关系名称。
+    at: t => [
+      (1 - t) ** 2 * x1 + 2 * (1 - t) * t * cx + t * t * x2,
+      (1 - t) ** 2 * y1 + 2 * (1 - t) * t * cy + t * t * y2,
+    ],
   };
 }
 
@@ -146,7 +159,7 @@ function fitView(svg, view) {
   const pad = { left: 76, top: 72, right: 28, bottom: 48 };
   const room = { width: width - pad.left - pad.right, height: height - pad.top - pad.bottom };
   const { minX, minY, width: boxWidth, height: boxHeight } = view.bounds;
-  view.k = Math.min(room.width / boxWidth, room.height / boxHeight, 1.8);
+  view.k = Math.min(room.width / boxWidth, room.height / boxHeight, 1.25);
   view.x = pad.left + (room.width - boxWidth * view.k) / 2 - minX * view.k;
   view.y = pad.top + (room.height - boxHeight * view.k) / 2 - minY * view.k;
   applyView(view);
@@ -228,119 +241,145 @@ export function renderGraph(svg, graph, options) {
     bindInteractions(svg, view);
     new ResizeObserver(() => fitView(svg, view)).observe(svg);
   }
+
+  // 画出来的圆点比布局时预留的小，连接越多的节点越大。
+  const degree = new Map();
+  graph.relations.forEach(({ source_id: a, target_id: b }) => {
+    degree.set(a, (degree.get(a) || 0) + 1);
+    degree.set(b, (degree.get(b) || 0) + 1);
+  });
+  const dotRadius = id => {
+    if (id === graph.center_id) return roomy ? 20 : 13;
+    const base = roomy ? 12 : 6;
+    return base + Math.min(5, Math.sqrt(degree.get(id) || 0) * 1.6);
+  };
+
   // 适应窗口时以节点实际占据的范围为准（含名称标签所需的余量）。
   const boxes = [...positions.values()];
-  const margin = roomy ? 12 : 30;
-  const minX = Math.min(...boxes.map(node => node.x - node.radius)) - margin;
-  const minY = Math.min(...boxes.map(node => node.y - node.radius)) - margin;
+  const margin = roomy ? 40 : 34;
+  const minX = Math.min(...boxes.map(node => node.x)) - margin - 30;
+  const minY = Math.min(...boxes.map(node => node.y)) - margin;
   view.bounds = {
     minX,
     minY,
-    width: Math.max(...boxes.map(node => node.x + node.radius)) + margin - minX,
-    height: Math.max(...boxes.map(node => node.y + node.radius)) + margin - minY + (roomy ? 0 : 16),
+    width: Math.max(...boxes.map(node => node.x)) + margin + 30 - minX,
+    height: Math.max(...boxes.map(node => node.y)) + margin + 16 - minY,
   };
 
   const defs = svgElement("defs");
-  const marker = svgElement("marker", {
-    id: "edgeArrow",
-    markerUnits: "userSpaceOnUse",
-    markerWidth: "9",
-    markerHeight: "9",
-    refX: "8",
-    refY: "4.5",
-    orient: "auto",
+  [["edgeArrow", "arrow"], ["edgeArrowLit", "arrow lit"]].forEach(([id, className]) => {
+    const marker = svgElement("marker", {
+      id,
+      markerUnits: "userSpaceOnUse",
+      markerWidth: "8",
+      markerHeight: "8",
+      refX: "7",
+      refY: "4",
+      orient: "auto",
+    });
+    marker.append(svgElement("path", { d: "M0 0.5 7 4 0 7.5Z", class: className }));
+    defs.append(marker);
   });
-  marker.append(svgElement("path", { d: "M0 0 9 4.5 0 9Z", fill: "#8da9b5" }));
-  defs.append(marker);
   svg.append(defs);
   const layer = svgElement("g");
   svg.append(layer);
   view.layer = layer;
 
   if (!graph.center_id) {
-    // 全图：在每个章节簇的中心放一个淡淡的章节名，帮助定位。
+    // 全图：每个章节簇画一块淡淡的区域，章节名写在区域上方。
     const groups = new Map();
     graph.entities.forEach(entity => {
-      const position = positions.get(entity.id);
-      const group = groups.get(entity.chapter_id) || { x: 0, y: 0, count: 0 };
-      group.x += position.x; group.y += position.y; group.count += 1;
-      groups.set(entity.chapter_id, group);
+      const list = groups.get(entity.chapter_id) || [];
+      list.push(positions.get(entity.id));
+      groups.set(entity.chapter_id, list);
     });
     if (groups.size > 1) {
-      groups.forEach((group, chapterId) => {
-        const label = svgElement("text", { class: "chapter-label", x: group.x / group.count, y: group.y / group.count });
+      const regions = svgElement("g", { class: "chapter-regions" });
+      groups.forEach((points, chapterId) => {
+        const cx = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+        const cy = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+        const r = Math.max(...points.map(p => Math.hypot(p.x - cx, p.y - cy))) + 42;
+        regions.append(svgElement("circle", { class: "chapter-region", cx, cy, r }));
+        const label = svgElement("text", { class: "chapter-label", x: cx, y: cy - r + 22 });
         label.textContent = chapters.find(chapter => chapter.id === chapterId)?.name || "";
-        layer.append(label);
+        regions.append(label);
       });
+      layer.append(regions);
     }
   }
 
+  const edgeElements = [];
   const edges = svgElement("g", { class: "graph-edges" });
+  const edgeLabels = svgElement("g", { class: "graph-edge-labels" });
   graph.relations.forEach(relation => {
     const source = positions.get(relation.source_id);
     const target = positions.get(relation.target_id);
     if (!source || !target) return;
     const directed = !["equivalent_to", "related_to"].includes(relation.type);
-    const highlighted = selectedId && [relation.source_id, relation.target_id].includes(selectedId);
-    const line = svgElement("line", {
-      ...edgeCoordinates(source, target, directed),
-      class: `graph-edge${highlighted ? " highlighted" : ""}`,
+    const highlighted = Boolean(selectedId)
+      && [relation.source_id, relation.target_id].includes(selectedId);
+    const { d, at } = edgePath(
+      source, target, dotRadius(relation.source_id), dotRadius(relation.target_id),
+    );
+    const path = svgElement("path", {
+      d,
+      class: `graph-edge${highlighted ? " highlighted" : ""}${directed ? "" : " undirected"}`,
     });
-    if (directed) line.setAttribute("marker-end", "url(#edgeArrow)");
-    edges.append(line);
+    if (directed) path.setAttribute("marker-end", `url(#${highlighted ? "edgeArrowLit" : "edgeArrow"})`);
+    path.dataset.ends = `${relation.source_id} ${relation.target_id}`;
+    edges.append(path);
+    edgeElements.push(path);
 
     if (highlighted) {
-      const label = svgElement("text", {
-        x: (source.x + target.x) / 2,
-        y: (source.y + target.y) / 2 - 7,
-        class: "graph-edge-label",
-      });
+      // 名称放在远离选中节点的一侧，避免和选中节点的名字挤在一起。
+      const [lx, ly] = at(relation.source_id === selectedId ? 0.6 : 0.4);
+      const label = svgElement("text", { x: lx, y: ly - 5, class: "graph-edge-label" });
       label.textContent = relationLabels[relation.type] || relation.type;
-      edges.append(label);
+      edgeLabels.append(label);
     }
   });
   layer.append(edges);
+
+  // 悬停时只突出该节点及其直接关联，其余变暗。
+  const nodeElements = new Map();
+  const focus = id => {
+    svg.classList.toggle("focusing", Boolean(id));
+    const related = new Set(id ? [id] : []);
+    edgeElements.forEach(path => {
+      const [a, b] = path.dataset.ends.split(" ");
+      const lit = Boolean(id) && (a === id || b === id);
+      path.classList.toggle("lit", lit);
+      if (lit) { related.add(a); related.add(b); }
+    });
+    nodeElements.forEach((element, nodeId) => element.classList.toggle("lit", related.has(nodeId)));
+  };
 
   const nodes = svgElement("g", { class: "graph-nodes" });
   graph.entities.forEach(entity => {
     const position = positions.get(entity.id);
     const selected = entity.id === selectedId;
+    const radius = dotRadius(entity.id);
     const group = svgElement("g", {
-      class: `graph-node${selected ? " selected" : ""}${roomy ? "" : " compact"}`,
+      class: `graph-node${selected ? " selected" : ""}${roomy ? " roomy" : ""}`,
       transform: `translate(${position.x} ${position.y})`,
       tabindex: "0",
       role: "button",
       "aria-label": `${entity.name}，${typeLabels[entity.type] || entity.type}`,
-      style: `--node-color:${TYPE_COLORS[entity.type] || "#007aff"}`,
+      style: `--node-color:${TYPE_COLORS[entity.type] || "#7aa2ff"}`,
     });
     group.dataset.entityId = entity.id;
-    if (selected) {
-      group.append(svgElement("circle", { class: "node-halo", r: position.radius + 8 }));
-    }
-    group.append(svgElement("circle", { class: "node-surface", r: position.radius }));
+    if (selected) group.append(svgElement("circle", { class: "node-halo", r: radius + 7 }));
+    group.append(svgElement("circle", { class: "node-glow", r: radius + 5 }));
+    group.append(svgElement("circle", { class: "node-dot", r: radius }));
 
+    const name = svgElement("text", { class: "node-name", x: "0", y: String(radius + (roomy ? 18 : 14)) });
+    const limit = roomy ? 12 : 9;
+    name.textContent = entity.name.length > limit ? `${entity.name.slice(0, limit - 1)}…` : entity.name;
+    group.append(name);
     if (roomy) {
-      const lines = splitLabel(entity.name, selected ? 8 : 7);
-      lines.forEach((lineText, index) => {
-        const line = svgElement("text", {
-          class: "node-name",
-          x: "0",
-          y: lines.length === 1 ? "-2" : String(-10 + index * 15),
-        });
-        line.textContent = lineText;
-        group.append(line);
-      });
-      const type = svgElement("text", {
-        class: "node-type",
-        x: "0",
-        y: lines.length === 1 ? "17" : "24",
-      });
+      const type = svgElement("text", { class: "node-type", x: "0", y: String(radius + 34) });
       type.textContent = typeLabels[entity.type] || entity.type;
       group.append(type);
-    } else {
-      const name = svgElement("text", { class: "node-name", x: "0", y: String(position.radius + 14) });
-      name.textContent = splitLabel(entity.name, 9)[0] + (entity.name.length > 9 ? "…" : "");
-      group.append(name);
     }
 
     const title = svgElement("title");
@@ -355,8 +394,11 @@ export function renderGraph(svg, graph, options) {
         activate();
       }
     });
+    group.addEventListener("pointerenter", () => focus(entity.id));
+    group.addEventListener("pointerleave", () => focus(null));
+    nodeElements.set(entity.id, group);
     nodes.append(group);
   });
-  layer.append(nodes);
+  layer.append(edgeLabels, nodes);
   fitView(svg, view);
 }
