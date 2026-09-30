@@ -14,117 +14,76 @@
   <script type="module" src="js/app.js"></script>
 </head>
 <body>
-  <main class="app-window" aria-label="电磁场与波知识工作台">
-    <header class="titlebar">
-      <div class="window-controls" aria-hidden="true">
-        <span class="control close"></span>
-        <span class="control minimize"></span>
-        <span class="control expand"></span>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M2 16c3.5 0 3.5-9 7-9s3.5 18 7 18 3.5-18 7-18 3.5 9 7 9"></path></svg>
+        <strong>场域</strong>
+        <span>电磁场与波</span>
       </div>
-      <div class="document-title">
-        <span class="app-symbol" aria-hidden="true">∿</span>
-        <span>场域</span>
-        <span class="document-subtitle">电磁场与波</span>
-      </div>
-      <div class="service-state" id="serviceState" role="status">
-        <span class="state-dot"></span>
-        <span>连接中</span>
+
+      <form class="search" id="searchForm" role="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+        <input id="searchInput" type="search" placeholder="搜索概念、公式或定律" autocomplete="off" aria-label="搜索知识点">
+        <kbd>Ctrl K</kbd>
+        <div class="search-results" id="searchResults" hidden></div>
+      </form>
+
+      <div class="topbar-actions">
+        <div class="service-state" id="serviceState" role="status">
+          <span class="state-dot"></span>
+          <span>连接中</span>
+        </div>
+        <button class="icon-button" id="themeToggle" type="button" title="切换外观" aria-label="切换深浅外观">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 15.2A9 9 0 0 1 8.8 3.2a9 9 0 1 0 12 12Z"></path></svg>
+        </button>
       </div>
     </header>
 
-    <div class="split-view">
-      <aside class="sidebar" aria-label="课程导航">
-        <div class="sidebar-heading">
-          <p>课程</p>
-          <strong>知识地图</strong>
+    <aside class="rail" aria-label="课程导航">
+      <nav class="chapter-list" id="chapterList" aria-label="课程章节"></nav>
+
+      <div class="type-block">
+        <p class="rail-label">知识类型</p>
+        <div class="type-list" id="typeList"></div>
+      </div>
+
+      <footer class="rail-footer">
+        <span id="knowledgeCount">正在载入知识库</span>
+        <button class="quiet-button" id="resetView" type="button">显示全部</button>
+      </footer>
+    </aside>
+
+    <main class="stage" aria-labelledby="graphTitle">
+      <div class="stage-head">
+        <h1 id="graphTitle">知识图谱</h1>
+        <p><span id="graphContext">完整课程</span> · <span id="graphSummary"></span></p>
+      </div>
+      <div class="canvas" id="graphScroll">
+        <svg class="knowledge-graph" id="knowledgeGraph" role="img" aria-label="课程知识图谱"></svg>
+        <div class="empty-state" id="graphEmpty" hidden>
+          <strong>这里还没有知识点</strong>
+          <span>选择其他章节或清除筛选。</span>
         </div>
+      </div>
+      <div class="zoom-controls" role="group" aria-label="图谱缩放">
+        <button id="zoomIn" type="button" title="放大" aria-label="放大"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+        <button id="zoomOut" type="button" title="缩小" aria-label="缩小"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+        <button id="fitGraph" type="button" title="适应窗口" aria-label="适应窗口"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg></button>
+      </div>
+      <p class="canvas-hint">滚轮缩放 · 拖动平移 · 双击空白处复位</p>
+    </main>
 
-        <nav class="chapter-list" id="chapterList" aria-label="课程章节">
-          <div class="skeleton-row"></div>
-          <div class="skeleton-row short"></div>
-          <div class="skeleton-row"></div>
-        </nav>
+    <aside class="panel" aria-label="详情与助教">
+      <div class="tabs" role="tablist">
+        <button class="tab active" id="tabDetail" role="tab" aria-selected="true" aria-controls="detailPane" type="button">知识点</button>
+        <button class="tab" id="tabChat" role="tab" aria-selected="false" aria-controls="chatPane" type="button">课程助教</button>
+      </div>
 
-        <div class="sidebar-section">
-          <p class="section-label">知识类型</p>
-          <div class="type-list" id="typeList"></div>
-        </div>
-
-        <footer class="sidebar-footer">
-          <span id="knowledgeCount">正在载入知识库</span>
-          <button class="quiet-button" id="resetView" type="button">显示全部</button>
-        </footer>
-      </aside>
-
-      <section class="workspace">
-        <header class="toolbar">
-          <form class="search" id="searchForm" role="search">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
-            <input id="searchInput" type="search" placeholder="搜索概念、公式或定律" autocomplete="off" aria-label="搜索知识点">
-            <kbd>⌘ K</kbd>
-            <div class="search-results" id="searchResults" hidden></div>
-          </form>
-          <div class="toolbar-actions">
-            <button class="icon-button" id="fitGraph" type="button" title="显示全部图谱" aria-label="显示全部图谱">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg>
-            </button>
-            <button class="icon-button" id="themeToggle" type="button" title="切换外观" aria-label="切换深浅外观">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 15.2A9 9 0 0 1 8.8 3.2a9 9 0 1 0 12 12Z"></path></svg>
-            </button>
-          </div>
-        </header>
-
-        <section class="canvas-panel" aria-labelledby="graphTitle">
-          <div class="canvas-heading">
-            <div>
-              <p class="eyebrow" id="graphContext">完整课程</p>
-              <h1 id="graphTitle">知识图谱</h1>
-            </div>
-            <p id="graphSummary">知识之间的结构，比知识清单更重要。</p>
-          </div>
-          <div class="graph-scroll" id="graphScroll">
-            <svg class="knowledge-graph" id="knowledgeGraph" viewBox="0 0 900 430" role="img" aria-label="课程知识图谱"></svg>
-            <div class="empty-state" id="graphEmpty" hidden>
-              <strong>这里还没有知识点</strong>
-              <span>选择其他章节或清除筛选。</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="assistant" aria-labelledby="assistantTitle">
-          <div class="panel-resizer" id="assistantResizer" role="separator" aria-orientation="horizontal" aria-label="调整 AI 回答区域高度" aria-valuemin="180" aria-valuemax="560" aria-valuenow="224" tabindex="0" title="拖动调整高度，双击恢复默认">
-            <span></span>
-          </div>
-          <header class="assistant-header">
-            <div class="assistant-orb" aria-hidden="true"><span></span></div>
-            <div>
-              <h2 id="assistantTitle">课程助教</h2>
-              <p id="assistantContext">回答只依据当前知识图谱</p>
-            </div>
-            <button class="quiet-button" id="clearConversation" type="button">清空对话</button>
-          </header>
-
-          <div class="conversation" id="conversation" aria-live="polite">
-            <div class="welcome-message">
-              <strong>从一个问题开始</strong>
-              <p>试试“高斯定律为什么需要闭合曲面？”</p>
-            </div>
-          </div>
-
-          <form class="composer" id="chatForm">
-            <textarea id="chatInput" rows="1" maxlength="500" placeholder="询问这个知识图谱中的内容" aria-label="向课程助教提问"></textarea>
-            <button class="send-button" id="sendButton" type="submit" aria-label="发送问题">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-8-5 16-3-6-6-2Z"></path><path d="m11 14 8-10"></path></svg>
-            </button>
-          </form>
-        </section>
-      </section>
-
-      <aside class="inspector" aria-label="知识点详情">
+      <section class="pane" id="detailPane" role="tabpanel" aria-labelledby="tabDetail">
         <div class="inspector-empty" id="inspectorEmpty">
-          <span class="empty-symbol">⌁</span>
           <strong>选择一个知识点</strong>
-          <p>查看定义、公式、条件以及它与其他知识的联系。</p>
+          <p>点击图中的节点，查看定义、公式、适用条件，以及它与其他知识的联系。</p>
         </div>
 
         <article class="entity-detail" id="entityDetail" hidden>
@@ -154,11 +113,30 @@
             <div class="neighbor-list" id="neighborList"><span class="muted">正在载入</span></div>
           </section>
 
-          <button class="primary-button" id="askAboutEntity" type="button">询问这个知识点</button>
+          <button class="primary-button" id="askAboutEntity" type="button">向助教提问</button>
         </article>
-      </aside>
-    </div>
-  </main>
+      </section>
+
+      <section class="pane chat-pane" id="chatPane" role="tabpanel" aria-labelledby="tabChat" hidden>
+        <div class="chat-head">
+          <p id="assistantContext">回答只依据当前知识图谱</p>
+          <button class="quiet-button" id="clearConversation" type="button">清空对话</button>
+        </div>
+        <div class="conversation" id="conversation" aria-live="polite">
+          <div class="welcome-message">
+            <strong>从一个问题开始</strong>
+            <p>试试“高斯定律为什么需要闭合曲面？”</p>
+          </div>
+        </div>
+        <form class="composer" id="chatForm">
+          <textarea id="chatInput" rows="1" maxlength="500" placeholder="询问这个知识图谱中的内容" aria-label="向课程助教提问"></textarea>
+          <button class="send-button" id="sendButton" type="submit" aria-label="发送问题">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-8-5 16-3-6-6-2Z"></path><path d="m11 14 8-10"></path></svg>
+          </button>
+        </form>
+      </section>
+    </aside>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>

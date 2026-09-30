@@ -44,7 +44,7 @@ frontend/
 ├── styles.css           视觉系统与响应式布局
 └── js/
     ├── api.js           后端请求与 SSE 解析
-    ├── graph.js         SVG 知识图谱渲染
+    ├── graph.js         SVG 知识图谱：力导向布局、缩放平移
     ├── chat.js          流式问答与页面内历史
     ├── markdown.js      Markdown 安全渲染
     ├── math.js          KaTeX 公式渲染

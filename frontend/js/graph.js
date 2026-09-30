@@ -12,7 +12,9 @@ export const TYPE_COLORS = {
 // 节点不超过此数量时使用大节点（名称写在圆内），否则用小节点（名称写在圆下方）。
 const ROOMY_LIMIT = 14;
 const ROOMY_SIZE = { width: 900, height: 430 };
-const COMPACT_SIZE = { width: 1500, height: 820 };
+const COMPACT_AREA_PER_NODE = 14500;   // 每个小节点分到的画布面积（世界坐标）
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 3;
 
 function svgElement(name, attributes = {}) {
   const element = document.createElementNS(SVG_NS, name);
@@ -128,30 +130,150 @@ function edgeCoordinates(source, target, directed) {
   };
 }
 
+// ---- 缩放与平移：所有图形放在一个 <g> 里，只改它的 transform ----
+
+const views = new WeakMap();
+
+function applyView(view) {
+  view.layer.setAttribute("transform", `translate(${view.x} ${view.y}) scale(${view.k})`);
+}
+
+/** 让整幅图完整出现在容器中央。 */
+function fitView(svg, view) {
+  const { width, height } = svg.getBoundingClientRect();
+  if (!width || !height) return;
+  // 四周留白：左侧和顶部要让出缩放按钮与标题的位置。
+  const pad = { left: 76, top: 72, right: 28, bottom: 48 };
+  const room = { width: width - pad.left - pad.right, height: height - pad.top - pad.bottom };
+  const { minX, minY, width: boxWidth, height: boxHeight } = view.bounds;
+  view.k = Math.min(room.width / boxWidth, room.height / boxHeight, 1.8);
+  view.x = pad.left + (room.width - boxWidth * view.k) / 2 - minX * view.k;
+  view.y = pad.top + (room.height - boxHeight * view.k) / 2 - minY * view.k;
+  applyView(view);
+}
+
+/** 以 (cx, cy)（svg 内的像素坐标）为不动点缩放。 */
+function zoomAt(view, factor, cx, cy) {
+  const k = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, view.k * factor));
+  view.x = cx - (cx - view.x) * (k / view.k);
+  view.y = cy - (cy - view.y) * (k / view.k);
+  view.k = k;
+  applyView(view);
+}
+
+function bindInteractions(svg, view) {
+  const local = event => {
+    const rect = svg.getBoundingClientRect();
+    return [event.clientX - rect.left, event.clientY - rect.top];
+  };
+  svg.addEventListener("wheel", event => {
+    event.preventDefault();
+    zoomAt(view, Math.exp(-event.deltaY * 0.0015), ...local(event));
+  }, { passive: false });
+
+  let drag = null;
+  svg.addEventListener("pointerdown", event => {
+    if (event.button !== 0 || event.target.closest(".graph-node")) return;
+    drag = { x: event.clientX, y: event.clientY, vx: view.x, vy: view.y };
+    svg.setPointerCapture(event.pointerId);
+    svg.parentElement.classList.add("panning");
+  });
+  svg.addEventListener("pointermove", event => {
+    if (!drag) return;
+    view.x = drag.vx + event.clientX - drag.x;
+    view.y = drag.vy + event.clientY - drag.y;
+    applyView(view);
+  });
+  const stop = () => { drag = null; svg.parentElement.classList.remove("panning"); };
+  svg.addEventListener("pointerup", stop);
+  svg.addEventListener("pointercancel", stop);
+  svg.addEventListener("dblclick", event => {
+    if (!event.target.closest(".graph-node")) fitView(svg, view);
+  });
+}
+
+/** 返回该 svg 的缩放控制器，按钮可直接调用。 */
+export function graphControls(svg) {
+  const view = views.get(svg) || { layer: null };
+  const center = () => {
+    const rect = svg.getBoundingClientRect();
+    return [rect.width / 2, rect.height / 2];
+  };
+  return {
+    zoomBy: factor => view.layer && zoomAt(view, factor, ...center()),
+    fit: () => view.layer && fitView(svg, view),
+  };
+}
+
+/** 画布面积随节点数增长，长宽比跟随容器，这样适应窗口后图形能铺满。 */
+function compactSize(svg, count) {
+  const rect = svg.getBoundingClientRect();
+  const aspect = rect.width && rect.height ? Math.min(1.9, Math.max(0.8, rect.width / rect.height)) : 1.5;
+  const area = Math.max(count, 20) * COMPACT_AREA_PER_NODE;
+  const width = Math.round(Math.sqrt(area * aspect));
+  return { width, height: Math.round(width / aspect) };
+}
+
 export function renderGraph(svg, graph, options) {
   const { chapters, typeLabels, relationLabels, selectedId, onSelect } = options;
   svg.textContent = "";
   const roomy = graph.entities.length <= ROOMY_LIMIT;
-  const size = roomy ? ROOMY_SIZE : COMPACT_SIZE;
+  const size = roomy ? ROOMY_SIZE : compactSize(svg, graph.entities.length);
   const positions = computeLayout(graph, chapters, size, roomy);
 
-  // 小图随容器缩放；大图按真实像素尺寸绘制，由外层容器滚动。
-  svg.setAttribute("viewBox", `0 0 ${size.width} ${size.height}`);
-  svg.style.width = roomy ? "" : `${size.width}px`;
-  svg.style.height = roomy ? "" : `${size.height}px`;
+  let view = views.get(svg);
+  if (!view) {
+    view = { k: 1, x: 0, y: 0, bounds: null, layer: null };
+    views.set(svg, view);
+    bindInteractions(svg, view);
+    new ResizeObserver(() => fitView(svg, view)).observe(svg);
+  }
+  // 适应窗口时以节点实际占据的范围为准（含名称标签所需的余量）。
+  const boxes = [...positions.values()];
+  const margin = roomy ? 12 : 30;
+  const minX = Math.min(...boxes.map(node => node.x - node.radius)) - margin;
+  const minY = Math.min(...boxes.map(node => node.y - node.radius)) - margin;
+  view.bounds = {
+    minX,
+    minY,
+    width: Math.max(...boxes.map(node => node.x + node.radius)) + margin - minX,
+    height: Math.max(...boxes.map(node => node.y + node.radius)) + margin - minY + (roomy ? 0 : 16),
+  };
 
   const defs = svgElement("defs");
   const marker = svgElement("marker", {
     id: "edgeArrow",
-    markerWidth: "7",
-    markerHeight: "7",
-    refX: "6",
-    refY: "3.5",
+    markerUnits: "userSpaceOnUse",
+    markerWidth: "9",
+    markerHeight: "9",
+    refX: "8",
+    refY: "4.5",
     orient: "auto",
   });
-  marker.append(svgElement("path", { d: "M0 0 7 3.5 0 7Z", fill: "#8da9b5" }));
+  marker.append(svgElement("path", { d: "M0 0 9 4.5 0 9Z", fill: "#8da9b5" }));
   defs.append(marker);
   svg.append(defs);
+  const layer = svgElement("g");
+  svg.append(layer);
+  view.layer = layer;
+
+  if (!graph.center_id) {
+    // 全图：在每个章节簇的中心放一个淡淡的章节名，帮助定位。
+    const groups = new Map();
+    graph.entities.forEach(entity => {
+      const position = positions.get(entity.id);
+      const group = groups.get(entity.chapter_id) || { x: 0, y: 0, count: 0 };
+      group.x += position.x; group.y += position.y; group.count += 1;
+      groups.set(entity.chapter_id, group);
+    });
+    if (groups.size > 1) {
+      groups.forEach((group, chapterId) => {
+        const label = svgElement("text", { class: "chapter-label", x: group.x / group.count, y: group.y / group.count });
+        label.textContent = chapters.find(chapter => chapter.id === chapterId)?.name || "";
+        layer.append(label);
+      });
+    }
+  }
 
   const edges = svgElement("g", { class: "graph-edges" });
   graph.relations.forEach(relation => {
@@ -177,7 +299,7 @@ export function renderGraph(svg, graph, options) {
       edges.append(label);
     }
   });
-  svg.append(edges);
+  layer.append(edges);
 
   const nodes = svgElement("g", { class: "graph-nodes" });
   graph.entities.forEach(entity => {
@@ -235,5 +357,6 @@ export function renderGraph(svg, graph, options) {
     });
     nodes.append(group);
   });
-  svg.append(nodes);
+  layer.append(nodes);
+  fitView(svg, view);
 }

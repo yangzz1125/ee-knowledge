@@ -5,7 +5,7 @@ import {
   searchEntities,
 } from "./api.js";
 import { initializeChat } from "./chat.js";
-import { renderGraph, TYPE_COLORS } from "./graph.js";
+import { graphControls, renderGraph, TYPE_COLORS } from "./graph.js";
 import { renderFormula } from "./math.js";
 
 const $ = selector => document.querySelector(selector);
@@ -76,7 +76,7 @@ function updateGraphHeading(graph) {
       ? chapterName(state.chapterId)
       : "完整课程";
   $("#graphContext").textContent = context;
-  $("#graphSummary").textContent = `${graph.entities.length} 个知识点 · ${graph.relations.length} 条关系`;
+  $("#graphSummary").textContent = `${graph.entities.length} 个知识点，${graph.relations.length} 条关系`;
 }
 
 function drawGraph(graph = state.visibleGraph) {
@@ -105,7 +105,12 @@ function renderChapters() {
     const button = el("button", "chapter-button");
     button.type = "button";
     button.dataset.chapterId = chapter.id;
-    button.append(el("span", "chapter-index", String(chapter.order).padStart(2, "0")), el("span", "", chapter.name));
+    const count = state.fullGraph.entities.filter(entity => entity.chapter_id === chapter.id).length;
+    button.append(
+      el("span", "chapter-index", String(chapter.order).padStart(2, "0")),
+      el("span", "", chapter.name),
+      el("span", "chapter-count", String(count)),
+    );
     button.addEventListener("click", () => {
       state.chapterId = state.chapterId === chapter.id ? null : chapter.id;
       state.selectedId = null;
@@ -157,7 +162,7 @@ function setList(element, values) {
 function renderEntityDetail(entity) {
   $("#inspectorEmpty").hidden = true;
   $("#entityDetail").hidden = false;
-  $("#entityType").textContent = `${state.typeLabels[entity.type] || entity.type} · ${chapterName(entity.chapter_id)}`;
+  $("#entityType").textContent = `${state.typeLabels[entity.type] || entity.type}，${chapterName(entity.chapter_id)}`;
   $("#entityName").textContent = entity.name;
   $("#entitySummary").textContent = entity.summary;
   $("#assistantContext").textContent = `当前上下文：${entity.name}`;
@@ -277,72 +282,26 @@ function initializeSearch() {
   });
 }
 
-function initializeAssistantResizer() {
-  const workspace = $(".workspace");
-  const resizer = $("#assistantResizer");
-  const defaultHeight = 224;
-  const minimumHeight = 180;
-  let dragging = false;
-  let startY = 0;
-  let startHeight = defaultHeight;
-
-  function maximumHeight() {
-    return Math.min(560, Math.max(minimumHeight, workspace.clientHeight - 278));
-  }
-
-  function currentHeight() {
-    return parseFloat(getComputedStyle(workspace).getPropertyValue("--assistant-height"))
-      || defaultHeight;
-  }
-
-  function setHeight(value, persist = false) {
-    const height = Math.round(Math.min(maximumHeight(), Math.max(minimumHeight, value)));
-    workspace.style.setProperty("--assistant-height", `${height}px`);
-    resizer.setAttribute("aria-valuenow", String(height));
-    resizer.setAttribute("aria-valuemax", String(Math.round(maximumHeight())));
-    if (persist) localStorage.setItem("ee-assistant-height", String(height));
-  }
-
-  const savedHeight = Number(localStorage.getItem("ee-assistant-height"));
-  setHeight(Number.isFinite(savedHeight) && savedHeight > 0 ? savedHeight : defaultHeight);
-
-  resizer.addEventListener("pointerdown", event => {
-    dragging = true;
-    startY = event.clientY;
-    startHeight = currentHeight();
-    resizer.setPointerCapture(event.pointerId);
-    document.body.classList.add("resizing-panel");
+function showTab(name) {
+  ["Detail", "Chat"].forEach(suffix => {
+    const active = suffix.toLowerCase() === name;
+    $(`#tab${suffix}`).classList.toggle("active", active);
+    $(`#tab${suffix}`).setAttribute("aria-selected", String(active));
+    $(`#${suffix.toLowerCase()}Pane`).hidden = !active;
   });
-  resizer.addEventListener("pointermove", event => {
-    if (dragging) setHeight(startHeight + startY - event.clientY);
-  });
-  resizer.addEventListener("pointerup", event => {
-    if (!dragging) return;
-    dragging = false;
-    resizer.releasePointerCapture(event.pointerId);
-    document.body.classList.remove("resizing-panel");
-    setHeight(currentHeight(), true);
-  });
-  resizer.addEventListener("dblclick", () => setHeight(defaultHeight, true));
-  resizer.addEventListener("keydown", event => {
-    if (!["ArrowUp", "ArrowDown", "Home"].includes(event.key)) return;
-    event.preventDefault();
-    const next = event.key === "Home"
-      ? defaultHeight
-      : currentHeight() + (event.key === "ArrowUp" ? 24 : -24);
-    setHeight(next, true);
-  });
-  window.addEventListener("resize", () => setHeight(currentHeight()));
 }
 
 function initializeTheme() {
   const root = document.documentElement;
-  const saved = localStorage.getItem("ee-theme");
+  let saved = null;
+  try { saved = localStorage.getItem("ee-theme"); } catch { /* 存储不可用时不记忆主题。 */ }
   if (saved) root.dataset.theme = saved;
+  const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
   $("#themeToggle").addEventListener("click", () => {
-    const next = root.dataset.theme === "dark" ? "light" : "dark";
+    const isDark = (root.dataset.theme || (systemDark.matches ? "dark" : "light")) === "dark";
+    const next = isDark ? "light" : "dark";
     root.dataset.theme = next;
-    localStorage.setItem("ee-theme", next);
+    try { localStorage.setItem("ee-theme", next); } catch { /* 忽略 */ }
   });
 }
 
@@ -358,7 +317,6 @@ function resetGraph() {
 
 async function start() {
   initializeTheme();
-  initializeAssistantResizer();
   initializeSearch();
 
   const chat = initializeChat({
@@ -372,9 +330,17 @@ async function start() {
     notify,
   });
   $("#askAboutEntity").addEventListener("click", () => {
-    if (state.selectedId) chat.ask(`请解释${entityName(state.selectedId)}，并说明它的关键点。`);
+    if (!state.selectedId) return;
+    showTab("chat");
+    chat.ask(`请解释${entityName(state.selectedId)}，并说明它的关键点。`);
   });
-  ["#resetView", "#fitGraph"].forEach(selector => $(selector).addEventListener("click", resetGraph));
+  $("#tabDetail").addEventListener("click", () => showTab("detail"));
+  $("#tabChat").addEventListener("click", () => showTab("chat"));
+  $("#resetView").addEventListener("click", resetGraph);
+  const controls = graphControls($("#knowledgeGraph"));
+  $("#zoomIn").addEventListener("click", () => controls.zoomBy(1.3));
+  $("#zoomOut").addEventListener("click", () => controls.zoomBy(1 / 1.3));
+  $("#fitGraph").addEventListener("click", controls.fit);
 
   try {
     const { health, meta, chapters, graph } = await loadApplicationData();
@@ -389,7 +355,7 @@ async function start() {
     renderChapters();
     renderTypes(meta.entity_types);
     drawGraph(graph);
-    $("#knowledgeCount").textContent = `${health.counts.entities} 个知识点 · ${health.counts.relations} 条关系`;
+    $("#knowledgeCount").textContent = `${health.counts.entities} 个知识点，${health.counts.relations} 条关系`;
     setServiceState("online", "知识库已连接");
   } catch (error) {
     setServiceState("offline", "后端未连接");
