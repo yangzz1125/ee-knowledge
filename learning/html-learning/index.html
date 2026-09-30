@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>电磁场与波知识图谱学习 Demo</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+
+<body>
+  <h1>电磁场与波 AI 知识图谱</h1>
+
+  <!-- 搜索功能：for 的值要和 input 的 id 对应 -->
+  <label for="search-input">搜索知识点：</label>
+  <!-- placeholder 是输入框没有内容时显示的提示文字 -->
+  <input id="search-input" type="search" placeholder="例如：电场">
+
+  <p id="result-count"></p>
+  <p id="api-status">正在加载后端知识图谱...</p>
+  <ul id="node-list"></ul>
+
+  <section id="node-detail" hidden>
+    <h2 id="detail-name"></h2>
+    <p id="detail-type"></p>
+    <p id="detail-chapter"></p>
+    <p id="detail-summary"></p>
+    <p id="detail-formula"></p>
+    <div id="detail-tags"></div>
+    <h3>关联知识点</h3>
+    <ul id="neighbor-list"></ul>
+  </section>
+</body>
+</html>

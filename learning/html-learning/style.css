@@ -1,0 +1,118 @@
+/* body 是页面主体；max-width 限制最大宽度，margin 设置外边距，padding 设置内边距，font-family 设置字体，color 设置默认文字颜色 */
+body {
+  max-width: 720px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+  color: #17324d;
+}
+
+/* #node-list 选择知识点列表；grid 表示网格布局，grid-template-columns 设置列数，gap 设置网格间距 */
+#node-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+
+/* #node-list button 选择列表中的按钮；width 设置宽度，padding 设置内部间距，border 设置边框，border-radius 设置圆角，background 设置背景色，color 设置文字色，cursor 设置鼠标样式，font-size 设置字号 */
+#node-list button {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c8e3e8;
+  border-radius: 10px;
+  background: #f5fbfc;
+  color: #087f8c;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* :hover 表示鼠标悬停状态；鼠标移动到按钮上时改变背景颜色 */
+#node-list button:hover {
+  background: #e0f4f5;
+}
+
+/* active 表示当前选中的按钮；选中后使用深色背景和白色文字突出显示 */
+#node-list button.active {
+  background: #087f8c;
+  color: white;
+}
+
+/* #node-detail 选择知识点详情区域；margin 设置外部间距，padding 设置内部间距，border-left 设置左边框，border-radius 设置圆角，background 设置背景色，box-shadow 设置阴影 */
+#node-detail {
+  margin-top: 24px;
+  padding: 20px;
+  border-left: 5px solid #0b8f98;
+  border-radius: 12px;
+  background: #f2fafb;
+  box-shadow: 0 4px 14px rgb(20 90 100 / 12%);
+}
+
+/* #detail-name 选择详情标题；margin-top 调整标题顶部间距，color 设置标题颜色 */
+#detail-name {
+  margin-top: 0;
+  color: #087f8c;
+}
+
+/* #detail-formula 选择公式区域；padding 设置内部间距，border-radius 设置圆角，background 设置背景色，font-family 设置公式字体，font-size 设置字号 */
+#detail-formula {
+  padding: 12px;
+  border-radius: 10px;
+  background: white;
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+
+/* flex 表示按行排列，flex-wrap 表示必要时换行，gap 表示标签之间的间距 */
+#detail-tags {
+  display: flex; 
+  /* flex表示按行排列，flex-wrap表示在必要时换行，gap表示元素之间的间距 */
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* .tag 选择每一个标签；padding 设置标签内部间距，border-radius 设置胶囊圆角，background 设置背景色，color 设置文字色，font-size 设置字号 */
+.tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #d9f0f2;
+  color: #087f8c;
+  font-size: 14px;
+}
+
+/* #neighbor-list 选择关联知识点列表；去掉默认内边距和圆点，方便制作关联节点卡片 */
+#neighbor-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+/* 关联知识点列表中的每一项；padding 设置内部间距，background 设置背景色，border-radius 设置圆角 */
+#neighbor-list li {
+  list-style: none;
+}
+
+/* 关联节点按钮可以被点击；width 和 text-align 让按钮表现得像一整行卡片 */
+#neighbor-list button {
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: white;
+  color: #17324d;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* 鼠标悬停关联节点时改变背景颜色，提示用户它可以点击 */
+#neighbor-list button:hover {
+  background: #e8f6f7;
+}
+
+/* 关联列表中的当前选中按钮；和普通节点列表使用相同的选中效果 */
+#neighbor-list button.active {
+  background: #087f8c;
+  color: white;
+}

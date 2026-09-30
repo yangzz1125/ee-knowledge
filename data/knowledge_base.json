@@ -1,0 +1,435 @@
+{
+  "schema_version": "1.0",
+  "chapters": [
+    {
+      "id": "vector-analysis",
+      "name": "矢量分析",
+      "order": 1,
+      "parent_id": null,
+      "description": "研究标量场与矢量场的微分运算，是后续各章的数学基础。"
+    },
+    {
+      "id": "electrostatic-field",
+      "name": "静电场",
+      "order": 2,
+      "parent_id": null,
+      "description": "研究静止电荷产生的电场及其与导体的相互作用。"
+    },
+    {
+      "id": "constant-current-field",
+      "name": "恒定电流场",
+      "order": 3,
+      "parent_id": null,
+      "description": "研究电流和电荷分布不随时间变化时的场量及其基本规律。"
+    },
+    {
+      "id": "constant-magnetic-field",
+      "name": "恒定磁场",
+      "order": 4,
+      "parent_id": null,
+      "description": "研究恒定电流产生的磁场及其与电流、载流体的相互作用。"
+    },
+    {
+      "id": "time-varying-field",
+      "name": "时变电磁场",
+      "order": 5,
+      "parent_id": null,
+      "description": "研究随时间变化的电场、磁场及其相互作用的规律。"
+    },
+    {
+      "id": "electromagnetic-wave",
+      "name": "电磁波",
+      "order": 6,
+      "parent_id": null,
+      "description": "研究电磁波的产生、传播、极化和能量传输。"
+    }
+  ],
+  "entities": [
+    {
+      "id": "gradient",
+      "name": "梯度",
+      "type": "concept",
+      "summary": "描述标量场在空间中变化最快方向和变化率的矢量。",
+      "chapter_id": "vector-analysis",
+      "aliases": ["梯度算子"],
+      "tags": ["矢量分析", "标量场"],
+      "conditions": [],
+      "details": {
+        "definition": "标量场在某点的梯度是一个矢量，方向为该点标量变化最快的方向，大小为该方向上的最大变化率。",
+        "key_points": ["作用对象是标量场，结果是矢量场", "电场强度等于电位的负梯度"],
+        "common_misconceptions": ["梯度是矢量，不能与方向导数这样的标量混为一谈"]
+      }
+    },
+    {
+      "id": "divergence",
+      "name": "散度",
+      "type": "concept",
+      "summary": "描述矢量场在某点是发散还是汇聚的标量。",
+      "chapter_id": "vector-analysis",
+      "aliases": ["散度算子"],
+      "tags": ["矢量分析", "矢量场"],
+      "conditions": [],
+      "details": {
+        "definition": "矢量场在某点的散度是该点单位体积内通量的极限，为标量。",
+        "key_points": ["作用对象是矢量场，结果是标量场", "散度定理把体积分与闭合面积分联系起来"],
+        "common_misconceptions": ["散度是标量，不带方向"]
+      }
+    },
+    {
+      "id": "electric-field-intensity",
+      "name": "电场强度",
+      "type": "quantity",
+      "summary": "描述电场对单位正电荷作用力的物理量。",
+      "chapter_id": "electrostatic-field",
+      "aliases": ["场强"],
+      "tags": ["电场", "矢量"],
+      "conditions": [],
+      "details": {
+        "symbol": "E",
+        "unit": "V/m",
+        "dimension": null,
+        "value_kind": "vector"
+      }
+    },
+    {
+      "id": "electric-flux",
+      "name": "电通量",
+      "type": "quantity",
+      "summary": "描述电场穿过某个曲面的多少的物理量。",
+      "chapter_id": "electrostatic-field",
+      "aliases": ["通量"],
+      "tags": ["电场", "通量"],
+      "conditions": [],
+      "details": {
+        "symbol": "Φ_E",
+        "unit": "V·m",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "electric-dipole-moment",
+      "name": "电偶极矩",
+      "type": "quantity",
+      "summary": "描述电偶极子电学性质的矢量。",
+      "chapter_id": "electrostatic-field",
+      "aliases": ["偶极矩"],
+      "tags": ["电偶极子", "矢量"],
+      "conditions": [],
+      "details": {
+        "symbol": "p",
+        "unit": "C·m",
+        "dimension": null,
+        "value_kind": "vector"
+      }
+    },
+    {
+      "id": "electric-dipole",
+      "name": "电偶极子",
+      "type": "concept",
+      "summary": "由两个等量异号点电荷组成的电荷系统。",
+      "chapter_id": "electrostatic-field",
+      "aliases": ["偶极子"],
+      "tags": ["电荷", "静电场"],
+      "conditions": [],
+      "details": {
+        "definition": "两个相距很近的等量异号点电荷组成的系统。",
+        "key_points": ["远场近似下由电偶极矩描述", "电场分布具有轴对称性"],
+        "common_misconceptions": ["电偶极子的总电荷为零，但产生的电场并不为零"]
+      }
+    },
+    {
+      "id": "gauss-law",
+      "name": "高斯定律",
+      "type": "law",
+      "summary": "通过任意闭合曲面的电通量只由该曲面内的电荷决定。",
+      "chapter_id": "electrostatic-field",
+      "aliases": ["高斯定理"],
+      "tags": ["电通量", "闭合曲面"],
+      "conditions": ["适用于静电场"],
+      "details": {
+        "definition": "通过任意闭合曲面的电通量等于该曲面所包围的电荷量除以真空介电常数。",
+        "key_points": ["电通量只与曲面内的电荷有关", "是麦克斯韦方程组的基本方程之一"],
+        "common_misconceptions": ["曲面外的电荷对电通量没有贡献，但仍会影响曲面上各点的场强"]
+      }
+    },
+    {
+      "id": "gauss-law-integral-form",
+      "name": "高斯定律积分形式",
+      "type": "formula",
+      "summary": "用闭合曲面上的电通量表述高斯定律。",
+      "chapter_id": "electrostatic-field",
+      "aliases": ["高斯定律积分式"],
+      "tags": ["电通量", "闭合曲面"],
+      "conditions": ["适用于静电场"],
+      "details": {
+        "latex": "\\oint_S \\mathbf{E} \\cdot d\\mathbf{S} = \\frac{Q}{\\varepsilon_0}",
+        "plain_text": "∮ E · dS = Q / ε₀",
+        "variables": [
+          {
+            "symbol": "E",
+            "name": "电场强度",
+            "quantity_id": "electric-field-intensity",
+            "unit": "V/m",
+            "description": "闭合曲面上的电场强度。"
+          },
+          {
+            "symbol": "Q",
+            "name": "曲面内电荷量",
+            "quantity_id": null,
+            "unit": "C",
+            "description": "闭合曲面所包围的总电荷量。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gauss-law-differential-form",
+      "name": "高斯定律微分形式",
+      "type": "formula",
+      "summary": "用电场强度的散度表述高斯定律。",
+      "chapter_id": "electrostatic-field",
+      "aliases": ["高斯定律微分式"],
+      "tags": ["散度", "体电荷密度"],
+      "conditions": ["适用于静电场", "要求电场可微"],
+      "details": {
+        "latex": "\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}",
+        "plain_text": "∇ · E = ρ / ε₀",
+        "variables": [
+          {
+            "symbol": "E",
+            "name": "电场强度",
+            "quantity_id": "electric-field-intensity",
+            "unit": "V/m",
+            "description": "空间中的电场强度矢量。"
+          },
+          {
+            "symbol": "ρ",
+            "name": "体电荷密度",
+            "quantity_id": null,
+            "unit": "C/m³",
+            "description": "该点处的自由电荷体密度。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "uniqueness-theorem",
+      "name": "唯一性定理",
+      "type": "law",
+      "summary": "给定边界条件和电荷分布时，区域内的静电场解是唯一的。",
+      "chapter_id": "electrostatic-field",
+      "aliases": ["静电场唯一性定理"],
+      "tags": ["边值问题", "静电场"],
+      "conditions": ["适用于静电场边值问题"],
+      "details": {
+        "definition": "在给定区域内电荷分布和边界上的电位或电位法向导数时，满足泊松方程的解是唯一的。",
+        "key_points": ["只要找到一个满足条件的解，它就是正确的解", "是镜像法和分离变量法的理论依据"],
+        "common_misconceptions": ["定理保证解唯一，但不保证解容易求出来"]
+      }
+    },
+    {
+      "id": "method-of-images",
+      "name": "镜像法",
+      "type": "method",
+      "summary": "用镜像电荷代替导体边界，把边值问题化为自由空间问题。",
+      "chapter_id": "electrostatic-field",
+      "aliases": ["镜像电荷法"],
+      "tags": ["边界条件", "导体"],
+      "conditions": ["边界为无限大导体平面或导体球", "真实电荷位于导体外部"],
+      "details": {
+        "purpose": "在存在导体边界的静电场问题中，避免直接求解泊松方程的边值问题。",
+        "steps": [
+          "根据导体表面等位条件，在导体内部设置一个或多个镜像电荷",
+          "用真实电荷与镜像电荷的叠加场代替原问题的解",
+          "用唯一性定理确认该解就是正确解",
+          "只在导体外部使用该解，导体内部场为零"
+        ]
+      }
+    },
+    {
+      "id": "electromagnetic-induction",
+      "name": "电磁感应",
+      "type": "concept",
+      "summary": "穿过回路的磁通量发生变化时，回路中产生感应电动势的现象。",
+      "chapter_id": "time-varying-field",
+      "aliases": ["感应现象"],
+      "tags": ["磁通量", "电动势"],
+      "conditions": [],
+      "details": {
+        "definition": "当穿过闭合回路的磁通量随时间变化时，回路中会产生感应电动势。",
+        "key_points": ["感应电动势的方向总是反抗磁通量的变化", "是发电机和变压器的工作原理"],
+        "common_misconceptions": ["产生感应电动势不需要磁通量本身很大，只需要它发生变化"]
+      }
+    },
+    {
+      "id": "maxwell-equations",
+      "name": "麦克斯韦方程组",
+      "type": "law",
+      "summary": "统一描述电场、磁场及其相互作用的基本方程组。",
+      "chapter_id": "time-varying-field",
+      "aliases": ["麦克斯韦方程"],
+      "tags": ["电场", "磁场", "时变场"],
+      "conditions": [],
+      "details": {
+        "definition": "麦克斯韦方程组由描述电场和磁场基本规律的四个方程组成，包括两个散度方程和两个旋度方程。",
+        "key_points": ["统一描述电荷、电流、电场和磁场之间的关系", "预言了电磁波的存在"],
+        "common_misconceptions": ["方程组本身与介质无关，介质的影响通过物质关系方程引入"]
+      }
+    },
+    {
+      "id": "faraday-law-differential-form",
+      "name": "法拉第定律微分形式",
+      "type": "formula",
+      "summary": "描述时变磁场产生旋涡电场。",
+      "chapter_id": "time-varying-field",
+      "aliases": ["法拉第方程"],
+      "tags": ["旋度", "电磁感应"],
+      "conditions": ["适用于时变电磁场", "介质连续"],
+      "details": {
+        "latex": "\\nabla \\times \\mathbf{E} = -\\frac{\\partial \\mathbf{B}}{\\partial t}",
+        "plain_text": "∇ × E = −∂B/∂t",
+        "variables": [
+          {
+            "symbol": "E",
+            "name": "电场强度",
+            "quantity_id": "electric-field-intensity",
+            "unit": "V/m",
+            "description": "空间中的电场强度矢量。"
+          },
+          {
+            "symbol": "t",
+            "name": "时间",
+            "quantity_id": null,
+            "unit": "s",
+            "description": "观察时刻。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wave-equation",
+      "name": "波动方程",
+      "type": "formula",
+      "summary": "描述电磁场在介质中以波的形式传播的方程。",
+      "chapter_id": "time-varying-field",
+      "aliases": ["电磁波动方程"],
+      "tags": ["波动", "无源介质"],
+      "conditions": ["适用于均匀、线性、无源介质"],
+      "details": {
+        "latex": "\\nabla^2 \\mathbf{E} - \\mu\\varepsilon \\frac{\\partial^2 \\mathbf{E}}{\\partial t^2} = 0",
+        "plain_text": "∇²E − με ∂²E/∂t² = 0",
+        "variables": [
+          {
+            "symbol": "E",
+            "name": "电场强度",
+            "quantity_id": "electric-field-intensity",
+            "unit": "V/m",
+            "description": "空间中的电场强度矢量。"
+          },
+          {
+            "symbol": "t",
+            "name": "时间",
+            "quantity_id": null,
+            "unit": "s",
+            "description": "观察时刻。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "uniform-plane-wave",
+      "name": "均匀平面波",
+      "type": "application",
+      "summary": "等相位面为平面、且面上场量处处相等的电磁波。",
+      "chapter_id": "time-varying-field",
+      "aliases": ["平面波"],
+      "tags": ["电磁波", "传播"],
+      "conditions": ["适用于无界均匀介质", "远离辐射源"],
+      "details": {
+        "scenario": "分析电磁波在无界均匀介质中的传播特性。",
+        "key_parameters": ["相速", "波长", "波阻抗", "电场与磁场的正交关系"]
+      }
+    }
+  ],
+  "relations": [
+    {
+      "source_id": "gradient",
+      "target_id": "electric-field-intensity",
+      "type": "prerequisite",
+      "description": "电场强度与电位满足 E = −∇φ，需要先掌握梯度才能理解两者的关系。"
+    },
+    {
+      "source_id": "divergence",
+      "target_id": "gauss-law",
+      "type": "prerequisite",
+      "description": "高斯定律的微分形式用散度表达，先掌握散度才能理解它的微分形式。"
+    },
+    {
+      "source_id": "electric-flux",
+      "target_id": "gauss-law",
+      "type": "prerequisite",
+      "description": "高斯定律用电通量来表述，先理解电通量才能理解这个定律说明了什么。"
+    },
+    {
+      "source_id": "electric-dipole",
+      "target_id": "electric-dipole-moment",
+      "type": "defines",
+      "description": "电偶极矩是为描述电偶极子而引入的物理量，定义为电荷量与间距的乘积。"
+    },
+    {
+      "source_id": "gauss-law",
+      "target_id": "gauss-law-integral-form",
+      "type": "expresses",
+      "description": "高斯定律表述为闭合曲面上的电通量形式。"
+    },
+    {
+      "source_id": "gauss-law",
+      "target_id": "gauss-law-differential-form",
+      "type": "expresses",
+      "description": "高斯定律表述为电场强度散度的微分形式。"
+    },
+    {
+      "source_id": "gauss-law-integral-form",
+      "target_id": "gauss-law-differential-form",
+      "type": "equivalent_to",
+      "description": "借助散度定理，两种形式可以互相转换，描述的是同一个物理规律。"
+    },
+    {
+      "source_id": "method-of-images",
+      "target_id": "uniqueness-theorem",
+      "type": "uses",
+      "description": "镜像法用唯一性定理确认构造出的叠加场就是原问题的正确解。"
+    },
+    {
+      "source_id": "maxwell-equations",
+      "target_id": "faraday-law-differential-form",
+      "type": "expresses",
+      "description": "麦克斯韦方程组中的旋度方程之一就是法拉第定律的微分形式。"
+    },
+    {
+      "source_id": "maxwell-equations",
+      "target_id": "wave-equation",
+      "type": "derives",
+      "description": "在均匀、线性、无源介质中，对麦克斯韦方程组取旋度并结合物质关系，可以推导出波动方程。"
+    },
+    {
+      "source_id": "faraday-law-differential-form",
+      "target_id": "electromagnetic-induction",
+      "type": "describes",
+      "description": "法拉第定律的微分形式定量描述了电磁感应现象中时变磁场与旋涡电场的关系。"
+    },
+    {
+      "source_id": "wave-equation",
+      "target_id": "uniform-plane-wave",
+      "type": "applies_to",
+      "description": "波动方程用于求解均匀平面波这类具体波型在无界介质中的传播特性。"
+    },
+    {
+      "source_id": "electric-dipole",
+      "target_id": "electric-field-intensity",
+      "type": "related_to",
+      "description": "电偶极子产生的电场用电场强度描述，两者通常放在一起讨论。"
+    }
+  ]
+}

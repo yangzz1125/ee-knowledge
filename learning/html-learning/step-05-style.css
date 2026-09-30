@@ -1,0 +1,45 @@
+/* step-05-external.html 的外部样式文件 */
+
+body {
+  margin: 0;
+  padding: 32px;
+  background-color: #f3f8fa;
+  color: #18324a;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+}
+
+.site-header {
+  padding: 24px;
+  background-color: white;
+  border-radius: 16px;
+}
+
+#page-title {
+  color: #087f8c;
+}
+
+.content-area {
+  margin-top: 24px;
+  padding: 24px;
+  background-color: white;
+  border-radius: 16px;
+}
+
+.knowledge-button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background-color: #078c96;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.knowledge-button:hover {
+  background-color: #056d75;
+}
+
+.site-footer {
+  margin-top: 24px;
+  color: #6b7c88;
+}

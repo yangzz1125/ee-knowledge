@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <!-- 让移动设备按照真实屏幕宽度显示页面 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML 第八步：响应式布局</title>
+  <link rel="stylesheet" href="step-08-responsive.css">
+</head>
+
+<body>
+  <header class="page-header">
+    <h1>电磁场与波 AI 知识图谱</h1>
+    <span class="header-label">学习 Demo</span>
+  </header>
+
+  <div class="page-layout">
+    <aside class="sidebar">
+      <h2>课程章节</h2>
+      <ul class="chapter-list">
+        <li class="chapter-item active">矢量分析</li>
+        <li class="chapter-item">静电场</li>
+        <li class="chapter-item">恒定磁场</li>
+        <li class="chapter-item">电磁波</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <h2>局部知识图谱</h2>
+      <div class="graph-preview">
+        <article class="knowledge-card">
+          <h3>梯度</h3>
+          <p>描述标量场变化最快方向的向量。</p>
+        </article>
+        <article class="knowledge-card">
+          <h3>散度</h3>
+          <p>描述矢量场在一点处向外发散的程度。</p>
+        </article>
+        <article class="knowledge-card">
+          <h3>旋度</h3>
+          <p>描述矢量场局部旋转特性的向量。</p>
+        </article>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

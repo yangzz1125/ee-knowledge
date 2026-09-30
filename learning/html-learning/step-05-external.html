@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML 第五步：外部 CSS</title>
+
+  <!-- 引入同一目录下的外部 CSS 文件 -->
+  <link rel="stylesheet" href="step-05-style.css">
+</head>
+
+<body>
+  <header id="page-header" class="site-header">
+    <h1 id="page-title">电磁场与波 AI 知识图谱</h1>
+    <p>这一步把 CSS 放到了独立文件中。</p>
+  </header>
+
+  <main id="knowledge-main" class="content-area">
+    <h2>核心知识点</h2>
+
+    <button
+      id="maxwell-button"
+      class="knowledge-button"
+      data-node-id="maxwell-equations"
+      data-node-name="麦克斯韦方程组">
+      麦克斯韦方程组
+    </button>
+  </main>
+
+  <footer class="site-footer">
+    <p>电磁场与波学习项目</p>
+  </footer>
+</body>
+</html>

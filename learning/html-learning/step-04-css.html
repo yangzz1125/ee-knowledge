@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML 第四步：CSS 样式</title>
+
+  <style>
+    /* 设置整个页面的基础样式 */
+    body {
+      margin: 0;
+      padding: 32px;
+      background-color: #f3f8fa;
+      color: #18324a;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+    }
+
+    /* 通过 class 选择顶部区域 */
+    .site-header {
+      padding: 24px;
+      background-color: white;
+      border-radius: 16px;
+    }
+
+    /* 通过 id 选择主标题 */
+    #page-title {
+      color: #087f8c;
+    }
+
+    .content-area {
+      margin-top: 24px;
+      padding: 24px;
+      background-color: white;
+      border-radius: 16px;
+    }
+
+    .knowledge-button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      background-color: #078c96;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .knowledge-button:hover {
+      background-color: #056d75;
+    }
+
+    .site-footer {
+      margin-top: 24px;
+      color: #6b7c88;
+    }
+  </style>
+</head>
+
+<body>
+  <header id="page-header" class="site-header">
+    <h1 id="page-title">电磁场与波 AI 知识图谱</h1>
+    <p>这一步学习 CSS 样式。</p>
+  </header>
+
+  <main id="knowledge-main" class="content-area">
+    <h2>核心知识点</h2>
+
+    <button
+      id="maxwell-button"
+      class="knowledge-button"
+      data-node-id="maxwell-equations"
+      data-node-name="麦克斯韦方程组">
+      麦克斯韦方程组
+    </button>
+  </main>
+
+  <footer class="site-footer">
+    <p>电磁场与波学习项目</p>
+  </footer>
+</body>
+</html>

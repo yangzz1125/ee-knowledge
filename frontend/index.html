@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="电磁场与波课程知识图谱与 AI 学习助手">
+  <title>场域 · 电磁场与波知识图谱</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <main class="app-window" aria-label="电磁场与波知识工作台">
+    <header class="titlebar">
+      <div class="window-controls" aria-hidden="true">
+        <span class="control close"></span>
+        <span class="control minimize"></span>
+        <span class="control expand"></span>
+      </div>
+      <div class="document-title">
+        <span class="app-symbol" aria-hidden="true">∿</span>
+        <span>场域</span>
+        <span class="document-subtitle">电磁场与波</span>
+      </div>
+      <div class="service-state" id="serviceState" role="status">
+        <span class="state-dot"></span>
+        <span>连接中</span>
+      </div>
+    </header>
+
+    <div class="split-view">
+      <aside class="sidebar" aria-label="课程导航">
+        <div class="sidebar-heading">
+          <p>课程</p>
+          <strong>知识地图</strong>
+        </div>
+
+        <nav class="chapter-list" id="chapterList" aria-label="课程章节">
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row short"></div>
+          <div class="skeleton-row"></div>
+        </nav>
+
+        <div class="sidebar-section">
+          <p class="section-label">知识类型</p>
+          <div class="type-list" id="typeList"></div>
+        </div>
+
+        <footer class="sidebar-footer">
+          <span id="knowledgeCount">正在载入知识库</span>
+          <button class="quiet-button" id="resetView" type="button">显示全部</button>
+        </footer>
+      </aside>
+
+      <section class="workspace">
+        <header class="toolbar">
+          <form class="search" id="searchForm" role="search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+            <input id="searchInput" type="search" placeholder="搜索概念、公式或定律" autocomplete="off" aria-label="搜索知识点">
+            <kbd>⌘ K</kbd>
+            <div class="search-results" id="searchResults" hidden></div>
+          </form>
+          <div class="toolbar-actions">
+            <button class="icon-button" id="fitGraph" type="button" title="显示全部图谱" aria-label="显示全部图谱">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg>
+            </button>
+            <button class="icon-button" id="themeToggle" type="button" title="切换外观" aria-label="切换深浅外观">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 15.2A9 9 0 0 1 8.8 3.2a9 9 0 1 0 12 12Z"></path></svg>
+            </button>
+          </div>
+        </header>
+
+        <section class="canvas-panel" aria-labelledby="graphTitle">
+          <div class="canvas-heading">
+            <div>
+              <p class="eyebrow" id="graphContext">完整课程</p>
+              <h1 id="graphTitle">知识图谱</h1>
+            </div>
+            <p id="graphSummary">知识之间的结构，比知识清单更重要。</p>
+          </div>
+          <div class="graph-scroll" id="graphScroll">
+            <svg class="knowledge-graph" id="knowledgeGraph" viewBox="0 0 900 430" role="img" aria-label="课程知识图谱"></svg>
+            <div class="empty-state" id="graphEmpty" hidden>
+              <strong>这里还没有知识点</strong>
+              <span>选择其他章节或清除筛选。</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="assistant" aria-labelledby="assistantTitle">
+          <div class="panel-resizer" id="assistantResizer" role="separator" aria-orientation="horizontal" aria-label="调整 AI 回答区域高度" aria-valuemin="180" aria-valuemax="560" aria-valuenow="224" tabindex="0" title="拖动调整高度，双击恢复默认">
+            <span></span>
+          </div>
+          <header class="assistant-header">
+            <div class="assistant-orb" aria-hidden="true"><span></span></div>
+            <div>
+              <h2 id="assistantTitle">课程助教</h2>
+              <p id="assistantContext">回答只依据当前知识图谱</p>
+            </div>
+            <button class="quiet-button" id="clearConversation" type="button">清空对话</button>
+          </header>
+
+          <div class="conversation" id="conversation" aria-live="polite">
+            <div class="welcome-message">
+              <strong>从一个问题开始</strong>
+              <p>试试“高斯定律为什么需要闭合曲面？”</p>
+            </div>
+          </div>
+
+          <form class="composer" id="chatForm">
+            <textarea id="chatInput" rows="1" maxlength="500" placeholder="询问这个知识图谱中的内容" aria-label="向课程助教提问"></textarea>
+            <button class="send-button" id="sendButton" type="submit" aria-label="发送问题">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-8-5 16-3-6-6-2Z"></path><path d="m11 14 8-10"></path></svg>
+            </button>
+          </form>
+        </section>
+      </section>
+
+      <aside class="inspector" aria-label="知识点详情">
+        <div class="inspector-empty" id="inspectorEmpty">
+          <span class="empty-symbol">⌁</span>
+          <strong>选择一个知识点</strong>
+          <p>查看定义、公式、条件以及它与其他知识的联系。</p>
+        </div>
+
+        <article class="entity-detail" id="entityDetail" hidden>
+          <header>
+            <span class="entity-kind" id="entityType"></span>
+            <h2 id="entityName"></h2>
+            <p id="entitySummary"></p>
+          </header>
+
+          <section class="detail-section" id="formulaSection" hidden>
+            <h3>表达式</h3>
+            <div class="formula-display" id="entityFormula"></div>
+          </section>
+
+          <section class="detail-section" id="definitionSection" hidden>
+            <h3>定义</h3>
+            <p id="entityDefinition"></p>
+          </section>
+
+          <section class="detail-section" id="conditionsSection" hidden>
+            <h3>适用条件</h3>
+            <ul class="plain-list" id="entityConditions"></ul>
+          </section>
+
+          <section class="detail-section">
+            <h3>相关知识</h3>
+            <div class="neighbor-list" id="neighborList"><span class="muted">正在载入</span></div>
+          </section>
+
+          <button class="primary-button" id="askAboutEntity" type="button">询问这个知识点</button>
+        </article>
+      </aside>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

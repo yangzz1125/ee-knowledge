@@ -6,5 +6,19 @@ dist/
 wheels/
 *.egg-info
 
+# Local environment and secrets
+.env
+
 # Virtual environments
 .venv
+
+# External projects used only for source-code study
+reference-projects/
+
+# Scratch / QA workspace, installers and build leftovers
+scratch/
+NUL
+
+# Editor / OS
+.vscode/
+.DS_Store

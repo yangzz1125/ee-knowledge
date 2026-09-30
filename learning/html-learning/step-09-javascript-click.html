@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML 第九步：JavaScript 点击事件</title>
+</head>
+
+<body>
+  <h1>电磁场与波 AI 知识图谱</h1>
+
+  <button id="show-button">查看知识点</button>
+  <p id="message">点击按钮后，这里的文字会发生变化。</p>
+
+  <script>
+    // 找到 HTML 中的按钮和文字段落
+    const button = document.querySelector("#show-button");
+    const message = document.querySelector("#message");
+
+    // 监听按钮的点击事件
+    button.addEventListener("click", function () {
+      message.textContent = "麦克斯韦方程组统一描述了电场和磁场。";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML 第十一步：外部 JavaScript</title>
+
+  <!-- 引入同一目录下的 JavaScript 文件 -->
+  <script src="step-11-script.js" defer></script>
+</head>
+
+<body>
+  <h1>电磁场与波 AI 知识图谱</h1>
+
+  <h2>选择知识点</h2>
+
+  <button
+    class="knowledge-button"
+    data-name="梯度"
+    data-description="描述标量场变化最快方向的向量。"
+    data-formula="∇φ">
+    梯度
+  </button>
+
+  <button
+    class="knowledge-button"
+    data-name="散度"
+    data-description="描述矢量场在一点处向外发散的程度。"
+    data-formula="∇ · A">
+    散度
+  </button>
+
+  <button
+    class="knowledge-button"
+    data-name="旋度"
+    data-description="描述矢量场局部旋转特性的向量。"
+    data-formula="∇ × A">
+    旋度
+  </button>
+
+  <hr>
+
+  <section>
+    <h2 id="detail-name">知识点详情</h2>
+    <p id="detail-description">请先选择一个知识点。</p>
+    <p>相关公式：<span id="detail-formula">暂无</span></p>
+  </section>
+</body>
+</html>

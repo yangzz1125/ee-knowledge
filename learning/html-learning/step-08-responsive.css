@@ -1,0 +1,126 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: #18324a;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  background-color: #087f8c;
+  color: white;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.header-label {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+}
+
+.page-layout {
+  display: flex;
+  gap: 24px;
+  min-height: calc(100vh - 72px);
+  background-color: #f7fafb;
+}
+
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  padding: 24px;
+  background-color: #eef7f8;
+}
+
+.sidebar h2 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.chapter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.chapter-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+
+.chapter-item.active {
+  background-color: white;
+  color: #087f8c;
+  font-weight: bold;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 32px;
+}
+
+.main-content h2 {
+  margin-top: 0;
+}
+
+.graph-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.knowledge-card {
+  flex: 1 1 220px;
+  padding: 20px;
+  background-color: white;
+  border: 1px solid #dcecef;
+  border-radius: 14px;
+}
+
+.knowledge-card h3 {
+  margin-top: 0;
+  color: #087f8c;
+}
+
+/* 当屏幕宽度不超过 700px 时，切换为移动端布局 */
+@media (max-width: 700px) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .page-layout {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .sidebar {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .chapter-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+}

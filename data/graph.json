@@ -1,0 +1,41 @@
+{
+  "course": {
+    "id": "electromagnetic-field-and-waves",
+    "name": "电磁场与波",
+    "description": "面向课程学习的固定知识图谱示例，覆盖场论基础、静态场、时变场和电磁波。"
+  },
+  "nodes": [
+    {"id":"vector-analysis","name":"矢量分析","type":"基础方法","chapter":"矢量分析","summary":"描述电磁场空间变化的数学工具。","formula":null,"tags":["梯度","散度","旋度"]},
+    {"id":"gradient","name":"梯度","type":"数学概念","chapter":"矢量分析","summary":"描述标量场变化最快方向和变化率的向量。","formula":"∇φ","tags":["标量场","方向导数"]},
+    {"id":"divergence","name":"散度","type":"数学概念","chapter":"矢量分析","summary":"衡量矢量场在一点处向外发散程度的标量。","formula":"∇ · A","tags":["矢量场","高斯定理"]},
+    {"id":"curl","name":"旋度","type":"数学概念","chapter":"矢量分析","summary":"描述矢量场局部旋转特性的向量。","formula":"∇ × A","tags":["矢量场","斯托克斯定理"]},
+    {"id":"electrostatic-field","name":"静电场","type":"物理概念","chapter":"静电场","summary":"由静止电荷产生的电场，具有无旋特性。","formula":"∇ × E = 0","tags":["电场","电势"]},
+    {"id":"electric-gauss-law","name":"高斯定律（电场）","type":"基本定律","chapter":"静电场","summary":"闭合曲面上的电位移通量等于曲面内的自由电荷。","formula":"∇ · D = ρᵥ","tags":["电场","散度","通量"]},
+    {"id":"electric-potential","name":"电势与电位","type":"物理概念","chapter":"静电场","summary":"用标量函数描述静电场，电场强度等于电势的负梯度。","formula":"E = −∇φ","tags":["电势","电场强度"]},
+    {"id":"constant-current-field","name":"恒定电流场","type":"物理概念","chapter":"恒定电流场","summary":"电流密度和电荷分布不随时间变化的电场。","formula":"∇ · J = 0","tags":["电流密度","电荷守恒"]},
+    {"id":"magnetic-gauss-law","name":"高斯定律（磁场）","type":"基本定律","chapter":"恒定磁场","summary":"任意闭合曲面的净磁通量为零，说明磁力线没有起点和终点。","formula":"∇ · B = 0","tags":["磁场","散度","磁通量"]},
+    {"id":"ampere-law","name":"安培环路定律","type":"基本定律","chapter":"恒定磁场","summary":"恒定电流产生磁场，磁场的环量与包围的电流有关。","formula":"∇ × H = J","tags":["磁场","旋度","电流"]},
+    {"id":"faraday-law","name":"法拉第电磁感应定律","type":"基本定律","chapter":"时变电磁场","summary":"变化的磁场会产生旋涡电场，是电磁感应的基础。","formula":"∇ × E = −∂B/∂t","tags":["电磁感应","旋度","时变场"]},
+    {"id":"displacement-current","name":"位移电流","type":"物理概念","chapter":"时变电磁场","summary":"由变化的电场产生的等效电流，是麦克斯韦修正安培定律的关键。","formula":"Jᵈ = ∂D/∂t","tags":["电场","电流","麦克斯韦"]},
+    {"id":"maxwell-equations","name":"麦克斯韦方程组","type":"核心概念","chapter":"时变电磁场","summary":"统一描述电场、磁场及其相互作用的四个基本方程。","formula":"∇·D=ρᵥ；∇·B=0；∇×E=−∂B/∂t；∇×H=J+∂D/∂t","tags":["电场","磁场","电磁波","基本方程"]},
+    {"id":"continuity-equation","name":"连续性方程","type":"基本方程","chapter":"时变电磁场","summary":"描述电荷守恒，电荷密度变化由电流的散度决定。","formula":"∇ · J + ∂ρᵥ/∂t = 0","tags":["电荷守恒","电流密度"]},
+    {"id":"material-relations","name":"物质关系","type":"媒质模型","chapter":"时变电磁场","summary":"把场量和媒质参数联系起来，用于分析具体电磁媒质。","formula":"D=εE；B=μH；J=σE","tags":["介电常数","磁导率","电导率"]},
+    {"id":"boundary-conditions","name":"边界条件","type":"分析方法","chapter":"静态电磁场","summary":"描述不同媒质分界面两侧场量之间的关系，是求解边值问题的基础。","formula":"n × (H₂−H₁)=Jₛ","tags":["媒质分界面","边值问题"]},
+    {"id":"wave-equation","name":"波动方程","type":"基本方程","chapter":"电磁波","summary":"由麦克斯韦方程组和物质关系推导出的场传播方程。","formula":"∇²E − με ∂²E/∂t² = 0","tags":["麦克斯韦方程组","传播","二阶偏微分方程"]},
+    {"id":"plane-wave","name":"均匀平面电磁波","type":"电磁波","chapter":"电磁波","summary":"场量在传播方向的横截面上保持均匀的电磁波模型。","formula":"E ⟂ H ⟂ k","tags":["电磁波","传播常数","波阻抗"]},
+    {"id":"polarization","name":"电磁波极化","type":"电磁波","chapter":"电磁波","summary":"描述电场强度矢量端点随时间变化的轨迹和方向特征。","formula":"E = Eₓx̂ + Eᵧŷ","tags":["线极化","圆极化","椭圆极化"]},
+    {"id":"poynting-theorem","name":"坡印廷定理","type":"能量定理","chapter":"时变电磁场","summary":"描述电磁场能量的传输、储存和耗散。","formula":"∇ · S + ∂w/∂t + J · E = 0","tags":["电磁能量","坡印廷矢量"]},
+    {"id":"transmission-line","name":"传输线","type":"工程模型","chapter":"波导与传输线","summary":"用于描述受约束电磁能量传输的分布参数模型。","formula":"∂²V/∂z² − με ∂²V/∂t² = 0","tags":["反射","阻抗匹配","行波"]},
+    {"id":"waveguide","name":"波导","type":"工程结构","chapter":"波导与传输线","summary":"利用边界约束引导电磁波传播的结构。","formula":"TE / TM 模式","tags":["模式","截止频率","导行波"]},
+    {"id":"electromagnetic-radiation","name":"电磁辐射","type":"工程应用","chapter":"电磁波","summary":"时变电流或加速电荷向远区空间辐射电磁能量的现象。","formula":"S = E × H","tags":["天线","远区场","电磁能量"]}
+  ],
+  "edges": [
+    {"source":"vector-analysis","target":"gradient","relation":"包含"},{"source":"vector-analysis","target":"divergence","relation":"包含"},{"source":"vector-analysis","target":"curl","relation":"包含"},
+    {"source":"divergence","target":"electric-gauss-law","relation":"用于描述"},{"source":"divergence","target":"magnetic-gauss-law","relation":"用于描述"},{"source":"curl","target":"ampere-law","relation":"用于描述"},{"source":"curl","target":"faraday-law","relation":"用于描述"},
+    {"source":"gradient","target":"electric-potential","relation":"推导"},{"source":"electric-potential","target":"electrostatic-field","relation":"描述"},{"source":"electrostatic-field","target":"electric-gauss-law","relation":"相关"},
+    {"source":"electric-gauss-law","target":"maxwell-equations","relation":"组成"},{"source":"magnetic-gauss-law","target":"maxwell-equations","relation":"组成"},{"source":"faraday-law","target":"maxwell-equations","relation":"组成"},{"source":"ampere-law","target":"maxwell-equations","relation":"修正为"},{"source":"displacement-current","target":"maxwell-equations","relation":"补充"},
+    {"source":"maxwell-equations","target":"continuity-equation","relation":"推出"},{"source":"maxwell-equations","target":"wave-equation","relation":"推导"},{"source":"material-relations","target":"wave-equation","relation":"参与推导"},{"source":"maxwell-equations","target":"poynting-theorem","relation":"推出"},
+    {"source":"boundary-conditions","target":"plane-wave","relation":"用于分析"},{"source":"wave-equation","target":"plane-wave","relation":"特例"},{"source":"plane-wave","target":"polarization","relation":"包含"},{"source":"plane-wave","target":"transmission-line","relation":"工程类比"},
+    {"source":"boundary-conditions","target":"waveguide","relation":"决定模式"},{"source":"transmission-line","target":"waveguide","relation":"相关"},{"source":"poynting-theorem","target":"electromagnetic-radiation","relation":"解释能量传输"},{"source":"constant-current-field","target":"ampere-law","relation":"前置"},{"source":"material-relations","target":"boundary-conditions","relation":"相关"}
+  ]
+}
