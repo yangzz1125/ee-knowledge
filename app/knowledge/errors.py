@@ -14,7 +14,8 @@ class KnowledgeBaseError(Exception):
 class EntityNotFound(Exception):
     """查询参数中的实体 ID 不在知识库中。"""
 
-    def __init__(self, entity_id: str) -> None:
-        """记录未找到的实体 ID。"""
+    def __init__(self, entity_id: str, field: str = "entity_id") -> None:
+        """记录未找到的实体 ID 和出错的参数名。"""
         self.entity_id = entity_id
+        self.field = field
         super().__init__(entity_id)

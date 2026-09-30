@@ -5,6 +5,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from ..knowledge import EntityNotFound
+
 
 def error_response(
     status_code: int,
@@ -41,6 +43,11 @@ async def validation_exception_handler(
     return error_response(422, "invalid_parameter", message, field)
 
 
+async def entity_not_found_handler(_request: Request, exc: EntityNotFound) -> JSONResponse:
+    """实体不存在统一返回 404。"""
+    return error_response(404, "entity_not_found", f"未找到知识点：{exc.entity_id}", exc.field)
+
+
 async def unhandled_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
     """兜底处理未捕获异常，避免直接暴露框架错误格式。"""
     return error_response(500, "internal_error", f"服务内部错误：{exc}")
@@ -50,4 +57,5 @@ def register_error_handlers(app: FastAPI) -> None:
     """为 FastAPI 应用注册全部统一错误处理器。"""
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    app.add_exception_handler(EntityNotFound, entity_not_found_handler)
     app.add_exception_handler(Exception, unhandled_exception_handler)

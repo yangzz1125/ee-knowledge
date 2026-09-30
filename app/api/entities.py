@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
 from ..dependencies import graph
 from ..domain.entities import KnowledgeEntity
@@ -36,17 +36,9 @@ def search_entities(
 @router.get("/{entity_id}", response_model=KnowledgeEntity)
 def get_entity(entity_id: str) -> KnowledgeEntity:
     """按 ID 返回一个知识实体，不存在时返回 404。"""
-    entity = graph.by_id.get(entity_id)
-    if entity is None:
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "code": "entity_not_found",
-                "message": f"未找到知识点：{entity_id}",
-                "field": "entity_id",
-            },
-        )
-    return entity
+    if entity_id not in graph.by_id:
+        raise EntityNotFound(entity_id)
+    return graph.by_id[entity_id]
 
 
 @router.get("/{entity_id}/neighbors", response_model=NeighborResult)
@@ -58,18 +50,4 @@ def get_neighbors(
     relation_types: Annotated[list[RelationType] | None, Query()] = None,
 ) -> NeighborResult:
     """返回实体的一跳邻居及其关系方向。"""
-    try:
-        return graph.neighbors(
-            entity_id,
-            direction=direction,
-            relation_types=relation_types,
-        )
-    except EntityNotFound as exc:
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "code": "entity_not_found",
-                "message": f"未找到知识点：{exc.entity_id}",
-                "field": "entity_id",
-            },
-        ) from None
+    return graph.neighbors(entity_id, direction=direction, relation_types=relation_types)

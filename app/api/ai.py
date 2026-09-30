@@ -43,12 +43,17 @@ def _retrieve(request: AIQuestionRequest) -> tuple[RetrievalContext, bool]:
 
 def _references(context: RetrievalContext) -> tuple[list[str], str | None]:
     """过滤不存在的引用 ID，并返回需要展示的提示。"""
-    used = [entity_id for entity_id in context.matched_entity_ids if entity_id in graph.by_id]
-    unknown = [
-        entity_id for entity_id in context.matched_entity_ids if entity_id not in graph.by_id
-    ]
+    used = [i for i in context.matched_entity_ids if i in graph.by_id]
+    unknown = [i for i in context.matched_entity_ids if i not in graph.by_id]
     message = f"忽略了不存在的知识点：{'、'.join(unknown)}" if unknown else None
     return used, message
+
+
+def _ai_error(exc: Exception) -> tuple[int, str, str]:
+    """把模型调用异常转换为 (HTTP 状态码, 错误码, 提示)。"""
+    if isinstance(exc, AIUnavailable):
+        return 503, "ai_unavailable", str(exc)
+    return 502, "ai_failed", f"AI 服务调用失败：{exc}"
 
 
 @router.post("/ask", response_model=AIAnswerResponse)
@@ -65,19 +70,11 @@ def ask(request: AIQuestionRequest) -> AIAnswerResponse:
 
     try:
         answer = call_model(context.question, context)
-    except AIUnavailable as exc:
-        raise HTTPException(
-            status_code=503,
-            detail={"code": "ai_unavailable", "message": str(exc), "field": None},
-        ) from None
     except Exception as exc:
+        status, code, message = _ai_error(exc)
         raise HTTPException(
-            status_code=502,
-            detail={
-                "code": "ai_failed",
-                "message": f"AI 服务调用失败：{exc}",
-                "field": None,
-            },
+            status_code=status,
+            detail={"code": code, "message": message, "field": None},
         ) from None
 
     used, message = _references(context)
@@ -101,11 +98,7 @@ def _sse(event: str, data: dict[str, object]) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
-def _stream_events(
-    request: AIQuestionRequest,
-    context: RetrievalContext,
-    insufficient: bool,
-) -> Iterator[str]:
+def _stream_events(context: RetrievalContext, insufficient: bool) -> Iterator[str]:
     """依次产生 metadata、delta、done 或 error 事件。"""
     if insufficient:
         message = context.retrieval_message or _INSUFFICIENT_MESSAGE
@@ -125,14 +118,9 @@ def _stream_events(
     try:
         for text in stream_model(context.question, context):
             yield _sse("delta", {"text": text})
-    except AIUnavailable as exc:
-        yield _sse("error", {"code": "ai_unavailable", "message": str(exc)})
-        return
     except Exception as exc:
-        yield _sse(
-            "error",
-            {"code": "ai_failed", "message": f"AI 服务调用失败：{exc}"},
-        )
+        _, code, error_message = _ai_error(exc)
+        yield _sse("error", {"code": code, "message": error_message})
         return
     yield _sse("done", {"message": message})
 
@@ -145,13 +133,14 @@ def ask_stream(request: AIQuestionRequest) -> StreamingResponse:
         try:
             ensure_configured()
         except AIUnavailable as exc:
+            status, code, message = _ai_error(exc)
             raise HTTPException(
-                status_code=503,
-                detail={"code": "ai_unavailable", "message": str(exc), "field": None},
+                status_code=status,
+                detail={"code": code, "message": message, "field": None},
             ) from None
 
     return StreamingResponse(
-        _stream_events(request, context, insufficient),
+        _stream_events(context, insufficient),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

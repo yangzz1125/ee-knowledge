@@ -145,19 +145,14 @@ class KnowledgeGraph:
     def _sides(self, entity_id: str):
         """产生关系、邻接实体 ID 以及相对于中心实体的方向。"""
         for relation in self._outgoing.get(entity_id, ()):
-            direction = (
-                "undirected"
-                if relation.type in UNDIRECTED_RELATION_TYPES
-                else "outgoing"
-            )
-            yield relation, relation.target_id, direction
+            yield relation, relation.target_id, self._direction(relation, "outgoing")
         for relation in self._incoming.get(entity_id, ()):
-            direction = (
-                "undirected"
-                if relation.type in UNDIRECTED_RELATION_TYPES
-                else "incoming"
-            )
-            yield relation, relation.source_id, direction
+            yield relation, relation.source_id, self._direction(relation, "incoming")
+
+    @staticmethod
+    def _direction(relation: KnowledgeRelation, directed: str) -> str:
+        """无向关系一律报告 undirected。"""
+        return "undirected" if relation.type in UNDIRECTED_RELATION_TYPES else directed
 
     # -- 路径 ---------------------------------------------------------------
 
@@ -170,9 +165,9 @@ class KnowledgeGraph:
         max_depth: int = 6,
     ) -> PathResult:
         """使用 BFS 查找两个实体之间的最短路径。"""
-        for entity_id in (start_id, end_id):
+        for entity_id, field in ((start_id, "start_id"), (end_id, "end_id")):
             if entity_id not in self.by_id:
-                raise EntityNotFound(entity_id)
+                raise EntityNotFound(entity_id, field)
 
         if start_id == end_id:
             return PathResult(found=True, entities=[self.by_id[start_id]], relations=[])
@@ -270,7 +265,7 @@ class KnowledgeGraph:
             }
         else:
             if center_id not in self.by_id:
-                raise EntityNotFound(center_id)
+                raise EntityNotFound(center_id, "center_id")
             keep = self._expand(center_id, depth)
             # 类型过滤不作用于中心实体，否则局部图会失去中心。
             keep = {

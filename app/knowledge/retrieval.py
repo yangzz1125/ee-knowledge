@@ -21,34 +21,16 @@ def build_retrieval_context(
         # 整句通常不会直接命中字段，退化为检查名称是否出现在问题中。
         matched = _match_by_entity_name(graph, question)
     if not matched and context_entity_id in graph.by_id:
-        matched = [
-            SearchResult(
-                entity=graph.by_id[context_entity_id],
-                score=1.0,
-                matched_fields=[],
-            )
-        ]
+        matched = [_fallback_hit(graph.by_id[context_entity_id])]
     if not matched:
         # 从最近轮次开始，最多取 5 个有效且不重复的历史实体。
-        seen: set[str] = set()
-        history_entity_ids = (
+        history_ids = dict.fromkeys(
             entity_id
             for turn in reversed(history)
             for entity_id in turn.used_entity_ids
+            if entity_id in graph.by_id
         )
-        for entity_id in history_entity_ids:
-            if entity_id not in graph.by_id or entity_id in seen:
-                continue
-            matched.append(
-                SearchResult(
-                    entity=graph.by_id[entity_id],
-                    score=1.0,
-                    matched_fields=[],
-                )
-            )
-            seen.add(entity_id)
-            if len(matched) == 5:
-                break
+        matched = [_fallback_hit(graph.by_id[i]) for i in list(history_ids)[:5]]
     if not matched:
         return (
             RetrievalContext(
@@ -83,6 +65,11 @@ def build_retrieval_context(
         ),
         False,
     )
+
+
+def _fallback_hit(entity: KnowledgeEntity) -> SearchResult:
+    """把页面实体或历史实体包装成没有匹配字段的命中结果。"""
+    return SearchResult(entity=entity, score=1.0, matched_fields=[])
 
 
 def _match_by_entity_name(
