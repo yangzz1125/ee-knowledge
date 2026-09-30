@@ -291,6 +291,59 @@ function showTab(name) {
   });
 }
 
+/** 拖动图谱两侧的边框调整左右栏宽度，宽度记在本地。 */
+function initializeColumnResizers() {
+  const shell = $(".shell");
+  const columns = [
+    { handle: $("#railResizer"), variable: "--rail-w", key: "ee-rail-width", fallback: 232, min: 180, max: 380, sign: 1 },
+    { handle: $("#panelResizer"), variable: "--panel-w", key: "ee-panel-width", fallback: 360, min: 280, max: 640, sign: -1 },
+  ];
+
+  columns.forEach(column => {
+    const { handle, variable, key, fallback, min, max, sign } = column;
+    const current = () => parseFloat(getComputedStyle(shell).getPropertyValue(variable)) || fallback;
+    const set = (value, persist = false) => {
+      const width = Math.round(Math.min(max, Math.max(min, value)));
+      shell.style.setProperty(variable, `${width}px`);
+      handle.setAttribute("aria-valuenow", String(width));
+      if (persist) {
+        try { localStorage.setItem(key, String(width)); } catch { /* 忽略 */ }
+      }
+    };
+
+    let saved = 0;
+    try { saved = Number(localStorage.getItem(key)); } catch { /* 忽略 */ }
+    set(saved > 0 ? saved : fallback);
+
+    let start = null;
+    handle.addEventListener("pointerdown", event => {
+      start = { x: event.clientX, width: current() };
+      handle.setPointerCapture(event.pointerId);
+      handle.classList.add("active");
+      document.body.classList.add("resizing-cols");
+    });
+    handle.addEventListener("pointermove", event => {
+      if (start) set(start.width + sign * (event.clientX - start.x));
+    });
+    const stop = () => {
+      if (!start) return;
+      start = null;
+      handle.classList.remove("active");
+      document.body.classList.remove("resizing-cols");
+      set(current(), true);
+    };
+    handle.addEventListener("pointerup", stop);
+    handle.addEventListener("pointercancel", stop);
+    handle.addEventListener("dblclick", () => set(fallback, true));
+    handle.addEventListener("keydown", event => {
+      const step = { ArrowLeft: -16, ArrowRight: 16 }[event.key];
+      if (!step) return;
+      event.preventDefault();
+      set(current() + sign * step, true);
+    });
+  });
+}
+
 function initializeTheme() {
   const root = document.documentElement;
   let saved = null;
@@ -317,6 +370,7 @@ function resetGraph() {
 
 async function start() {
   initializeTheme();
+  initializeColumnResizers();
   initializeSearch();
 
   const chat = initializeChat({
