@@ -1,4 +1,5 @@
 import {
+  findPath,
   loadApplicationData,
   loadLocalGraph,
   loadNeighbors,
@@ -20,6 +21,7 @@ const state = {
   entityType: null,
   selectedId: null,
   localMode: false,
+  pathTitle: null,
 };
 
 /** 创建带 class 和文字的元素。 */
@@ -70,14 +72,16 @@ function filteredGraph() {
 }
 
 function updateGraphHeading(graph) {
-  const context = state.localMode && state.selectedId
+  const context = state.pathTitle
+    ? state.pathTitle
+    : state.localMode && state.selectedId
     ? `围绕「${entityName(state.selectedId)}」`
     : state.chapterId
       ? chapterName(state.chapterId)
       : "完整课程";
   $("#graphContext").textContent = context;
   // 进入局部图或做了筛选后，给出回到完整图谱的入口。
-  $("#backToAll").hidden = !(state.localMode || state.chapterId || state.entityType);
+  $("#backToAll").hidden = !(state.pathTitle || state.localMode || state.chapterId || state.entityType);
   $("#graphSummary").textContent = `${graph.entities.length} 个知识点，${graph.relations.length} 条关系`;
 }
 
@@ -97,6 +101,7 @@ function drawGraph(graph = state.visibleGraph) {
 
 function showFilteredGraph() {
   state.localMode = false;
+  state.pathTitle = null;
   drawGraph(filteredGraph());
 }
 
@@ -185,27 +190,71 @@ function renderEntityDetail(entity) {
 
   $("#conditionsSection").hidden = entity.conditions.length === 0;
   setList($("#entityConditions"), entity.conditions);
+
+  const variables = entity.details.variables || [];
+  $("#variablesSection").hidden = variables.length === 0;
+  $("#entityVariables").replaceChildren(...variables.map(variable => {
+    const row = el("tr");
+    const meaning = el("td");
+    const name = variable.quantity_id && state.entitiesById.has(variable.quantity_id)
+      ? el("button", "link-button", variable.name)
+      : el("span", "", variable.name);
+    if (name.tagName === "BUTTON") {
+      name.type = "button";
+      name.addEventListener("click", () => selectEntity(variable.quantity_id));
+    }
+    meaning.append(name, el("small", "", variable.description));
+    row.append(el("td", "symbol", variable.symbol), meaning, el("td", "unit", variable.unit || "—"));
+    return row;
+  }));
 }
 
+const ARROWS = { outgoing: "→", incoming: "←", undirected: "↔" };
+
+/** 把邻居分成前置知识、后续知识和其他关联三组。 */
 async function renderNeighbors(entityId) {
-  const container = $("#neighborList");
-  container.innerHTML = '<span class="muted">正在载入</span>';
+  const container = $("#neighborSections");
+  container.replaceChildren(el("span", "muted", "正在载入"));
   try {
     const result = await loadNeighbors(entityId);
-    container.textContent = "";
-    if (!result.items.length) {
-      container.innerHTML = '<span class="muted">暂无直接关联</span>';
-      return;
-    }
+    if (state.selectedId !== entityId) return;
+    const groups = [
+      { title: "前置知识", hint: "学这个之前要先掌握", items: [] },
+      { title: "后续知识", hint: "学完可以继续学", items: [] },
+      { title: "其他关联", hint: "", items: [] },
+    ];
     result.items.forEach(item => {
-      const label = state.relationLabels[item.relation.type] || item.relation.type;
-      const button = el("button", "neighbor-button", `${item.entity.name} · ${label}`);
-      button.type = "button";
-      button.addEventListener("click", () => selectEntity(item.entity.id));
-      container.append(button);
+      const isPrerequisite = item.relation.type === "prerequisite";
+      const group = isPrerequisite && item.direction === "incoming"
+        ? groups[0]
+        : isPrerequisite && item.direction === "outgoing" ? groups[1] : groups[2];
+      group.items.push(item);
     });
+
+    const blocks = groups.filter(group => group.items.length).map(group => {
+      const block = el("div", "neighbor-group");
+      const heading = el("h3", "", group.title);
+      if (group.hint) heading.append(el("small", "", group.hint));
+      const list = el("div", "neighbor-list");
+      group.items.forEach(item => {
+        const button = el("button", "neighbor-button");
+        button.type = "button";
+        button.style.setProperty("--type-color", TYPE_COLORS[item.entity.type]);
+        button.append(el("span", "type-dot"), el("span", "", item.entity.name));
+        if (group !== groups[0] && group !== groups[1]) {
+          const label = state.relationLabels[item.relation.type] || item.relation.type;
+          button.append(el("small", "", `${ARROWS[item.direction]} ${label}`));
+        }
+        button.title = item.relation.description;
+        button.addEventListener("click", () => selectEntity(item.entity.id));
+        list.append(button);
+      });
+      block.append(heading, list);
+      return block;
+    });
+    container.replaceChildren(...(blocks.length ? blocks : [el("span", "muted", "暂无直接关联")]));
   } catch (error) {
-    container.innerHTML = `<span class="muted">${error.message}</span>`;
+    container.replaceChildren(el("span", "muted", error.message));
   }
 }
 
@@ -213,6 +262,7 @@ async function selectEntity(entityId) {
   const entity = state.entitiesById.get(entityId);
   if (!entity) return;
   state.selectedId = entityId;
+  state.pathTitle = null;
   renderEntityDetail(entity);
   renderNeighbors(entityId);
   drawGraph(state.visibleGraph);
@@ -289,7 +339,7 @@ function initializeSearch() {
 }
 
 function showTab(name) {
-  ["Detail", "Chat"].forEach(suffix => {
+  ["Detail", "Path", "Chat"].forEach(suffix => {
     const active = suffix.toLowerCase() === name;
     $(`#tab${suffix}`).classList.toggle("active", active);
     $(`#tab${suffix}`).setAttribute("aria-selected", String(active));
@@ -364,7 +414,145 @@ function initializeTheme() {
   });
 }
 
+// ---- 学习路径 ----
+
+/** 带下拉候选的知识点选择框；选中的实体 ID 记在 input.dataset.entityId。 */
+function initializePicker(input) {
+  const results = input.parentElement.querySelector(".picker-results");
+  const choose = entity => {
+    input.value = entity.name;
+    input.dataset.entityId = entity.id;
+    results.hidden = true;
+  };
+  input.addEventListener("input", () => {
+    delete input.dataset.entityId;
+    const keyword = input.value.trim().toLowerCase();
+    if (!keyword) { results.hidden = true; return; }
+    const matches = state.fullGraph.entities.filter(entity =>
+      entity.name.toLowerCase().includes(keyword)
+      || entity.aliases.some(alias => alias.toLowerCase().includes(keyword))
+    ).slice(0, 8);
+    results.replaceChildren(...(matches.length ? matches.map(entity => {
+      const button = el("button", "picker-option");
+      button.type = "button";
+      button.style.setProperty("--type-color", TYPE_COLORS[entity.type]);
+      button.append(el("span", "type-dot"), el("span", "", entity.name), el("small", "", chapterName(entity.chapter_id)));
+      button.addEventListener("click", () => choose(entity));
+      return button;
+    }) : [el("div", "picker-empty", "没有匹配的知识点")]));
+    results.hidden = false;
+  });
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !results.hidden) {
+      const first = results.querySelector(".picker-option");
+      if (first) { event.preventDefault(); first.click(); }
+    }
+    if (event.key === "Escape") results.hidden = true;
+  });
+  document.addEventListener("click", event => {
+    if (!input.parentElement.contains(event.target)) results.hidden = true;
+  });
+  return { set: id => choose(state.entitiesById.get(id)) };
+}
+
+function fillPathPicker(picker, entityId) {
+  picker.set(entityId);
+  showTab("path");
+}
+
+function renderPathResult(result, undirected) {
+  const container = $("#pathResult");
+  if (!result.found) {
+    const box = el("div", "path-empty");
+    box.append(el("strong", "", "没有找到路径"), el("p", "", result.message || ""));
+    if (!undirected) {
+      const retry = el("button", "quiet-button", "忽略方向再找一次");
+      retry.type = "button";
+      retry.addEventListener("click", () => {
+        $("#pathUndirected").checked = true;
+        $("#pathForm").requestSubmit();
+      });
+      box.append(retry);
+    }
+    container.replaceChildren(box);
+    return;
+  }
+
+  const steps = el("ol", "path-steps");
+  result.entities.forEach((entity, index) => {
+    const node = el("li", "path-node");
+    const button = el("button", "path-entity");
+    button.type = "button";
+    button.style.setProperty("--type-color", TYPE_COLORS[entity.type]);
+    button.append(
+      el("span", "type-dot"),
+      el("span", "", entity.name),
+      el("small", "", state.typeLabels[entity.type] || entity.type),
+    );
+    button.addEventListener("click", () => selectEntity(entity.id));
+    node.append(button);
+    steps.append(node);
+
+    const relation = result.relations[index];
+    if (relation) {
+      const reversed = relation.source_id !== entity.id;
+      const link = el("li", `path-link${reversed ? " reversed" : ""}`);
+      const label = state.relationLabels[relation.type] || relation.type;
+      link.append(
+        el("span", "path-relation", reversed ? `${label}（反向）` : label),
+        el("small", "", relation.description),
+      );
+      steps.append(link);
+    }
+  });
+  const summary = el("p", "path-summary",
+    result.relations.length ? `共 ${result.relations.length} 步` : "起点和终点是同一个知识点");
+  container.replaceChildren(summary, steps);
+}
+
+function initializePath() {
+  const start = initializePicker($("#pathStart"));
+  const end = initializePicker($("#pathEnd"));
+
+  $("#setPathStart").addEventListener("click", () => state.selectedId && fillPathPicker(start, state.selectedId));
+  $("#setPathEnd").addEventListener("click", () => state.selectedId && fillPathPicker(end, state.selectedId));
+  $("#swapPath").addEventListener("click", () => {
+    const [a, b] = [$("#pathStart").dataset.entityId, $("#pathEnd").dataset.entityId];
+    if (b) start.set(b); else { $("#pathStart").value = ""; delete $("#pathStart").dataset.entityId; }
+    if (a) end.set(a); else { $("#pathEnd").value = ""; delete $("#pathEnd").dataset.entityId; }
+  });
+
+  $("#pathForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const startId = $("#pathStart").dataset.entityId;
+    const endId = $("#pathEnd").dataset.entityId;
+    if (!startId || !endId) {
+      notify("请从候选列表中选择起点和终点");
+      return;
+    }
+    const undirected = $("#pathUndirected").checked;
+    try {
+      const result = await findPath(startId, endId, undirected);
+      renderPathResult(result, undirected);
+      if (result.found) {
+        state.selectedId = null;
+        state.localMode = false;
+        state.pathTitle = `从「${entityName(startId)}」到「${entityName(endId)}」`;
+        drawGraph({
+          center_id: null,
+          path_ids: result.entities.map(entity => entity.id),
+          entities: result.entities,
+          relations: result.relations,
+        });
+      }
+    } catch (error) {
+      notify(error.message);
+    }
+  });
+}
+
 function resetGraph() {
+  state.pathTitle = null;
   state.chapterId = null;
   state.entityType = null;
   state.selectedId = null;
@@ -396,6 +584,8 @@ async function start() {
   });
   $("#tabDetail").addEventListener("click", () => showTab("detail"));
   $("#tabChat").addEventListener("click", () => showTab("chat"));
+  $("#tabPath").addEventListener("click", () => showTab("path"));
+  initializePath();
   $("#resetView").addEventListener("click", resetGraph);
   $("#backToAll").addEventListener("click", resetGraph);
   const controls = graphControls($("#knowledgeGraph"));

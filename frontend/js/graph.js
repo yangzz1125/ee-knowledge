@@ -53,6 +53,22 @@ function computeLayout(graph, chapters, size, roomy) {
     };
   };
 
+  // 路径：按顺序从左到右排成一条起伏的线，不做力模拟。
+  if (graph.path_ids) {
+    const count = graph.path_ids.length;
+    const step = 220;
+    const left = middle.x - (step * (count - 1)) / 2;
+    graph.path_ids.forEach((id, index) => {
+      positions.set(id, {
+        id,
+        x: left + index * step,
+        y: middle.y + (index % 2 ? 50 : -50) * (count > 2 ? 1 : 0),
+        radius: 30,
+      });
+    });
+    return positions;
+  }
+
   const nodes = graph.entities.map((entity, index) => {
     const anchor = anchorOf(entity);
     const angle = index * 2.4;
@@ -252,6 +268,7 @@ export function renderGraph(svg, graph, options) {
   });
   const dotRadius = id => {
     if (id === graph.center_id) return roomy ? 20 : 13;
+    if (graph.path_ids && (id === graph.path_ids[0] || id === graph.path_ids.at(-1))) return 18;
     const base = roomy ? 12 : 6;
     return base + Math.min(5, Math.sqrt(degree.get(id) || 0) * 1.6);
   };
@@ -287,7 +304,7 @@ export function renderGraph(svg, graph, options) {
   svg.append(layer);
   view.layer = layer;
 
-  if (!graph.center_id) {
+  if (!graph.center_id && !graph.path_ids) {
     // 全图：每个章节簇画一块淡淡的区域，章节名写在区域上方。
     const groups = new Map();
     graph.entities.forEach(entity => {
@@ -339,8 +356,8 @@ export function renderGraph(svg, graph, options) {
     const target = positions.get(relation.target_id);
     if (!source || !target) return;
     const directed = !["equivalent_to", "related_to"].includes(relation.type);
-    const highlighted = Boolean(selectedId)
-      && [relation.source_id, relation.target_id].includes(selectedId);
+    const highlighted = Boolean(graph.path_ids) || (Boolean(selectedId)
+      && [relation.source_id, relation.target_id].includes(selectedId));
     const { d, at } = edgePath(
       source, target, dotRadius(relation.source_id), dotRadius(relation.target_id),
     );

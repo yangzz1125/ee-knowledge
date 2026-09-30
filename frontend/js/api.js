@@ -30,6 +30,13 @@ export const searchEntities = keyword =>
 export const loadNeighbors = entityId =>
   getJson(`/entities/${encodeURIComponent(entityId)}/neighbors`);
 
+export const findPath = (startId, endId, undirected = false) =>
+  getJson(`/path?${new URLSearchParams({
+    start_id: startId,
+    end_id: endId,
+    direction: undirected ? "undirected" : "directed",
+  })}`);
+
 export const loadLocalGraph = (entityId, depth = 1) =>
   getJson(`/graph?${new URLSearchParams({ center_id: entityId, depth })}`);
 

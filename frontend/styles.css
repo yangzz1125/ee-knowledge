@@ -362,7 +362,7 @@ body.resizing-cols .canvas { cursor: col-resize; }
   background: var(--surface);
   border-left: 1px solid var(--line);
 }
-.tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
 .tab {
   height: 44px;
   border: 0;
@@ -384,15 +384,103 @@ body.resizing-cols .canvas { cursor: col-resize; }
 .formula-display { overflow-x: auto; padding: 12px; border-radius: var(--radius); background: var(--paper); border: 1px solid var(--line); }
 .plain-list { margin: 0; padding-left: 18px; }
 .plain-list li + li { margin-top: 4px; }
+#neighborSections { display: grid; gap: 16px; }
+.neighbor-group h3 small { margin-left: 8px; font-weight: 400; color: var(--ink-3); }
 .neighbor-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .neighbor-button {
+  display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: none;
   font-size: 13px;
 }
+.neighbor-button small { color: var(--ink-3); }
+.neighbor-button .type-dot, .path-entity .type-dot, .picker-option .type-dot { width: 8px; height: 8px; box-shadow: none; }
 .neighbor-button:hover { border-color: var(--accent); color: var(--accent); }
+
+.variable-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.variable-table th { padding: 0 8px 6px 0; color: var(--ink-3); font-weight: 400; text-align: left; }
+.variable-table td { padding: 6px 8px 6px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.variable-table td small { display: block; color: var(--ink-3); }
+.variable-table .symbol { font-family: "Cambria Math", "Times New Roman", serif; font-style: italic; font-size: 15px; white-space: nowrap; }
+.variable-table .unit { white-space: nowrap; color: var(--ink-2); }
+.link-button { padding: 0; border: 0; background: none; color: var(--accent); text-align: left; }
+.link-button:hover { text-decoration: underline; }
+
+.detail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.detail-actions .primary-button { flex: 1 0 100%; }
+
+/* ---------- 学习路径 ---------- */
+.path-form { display: grid; gap: 10px; padding: 20px 20px 16px; border-bottom: 1px solid var(--line); }
+.path-intro { margin: 0 0 4px; color: var(--ink-2); }
+.picker { position: relative; display: grid; grid-template-columns: 36px 1fr; align-items: center; gap: 8px; }
+.picker label { color: var(--ink-3); font-size: 13px; }
+.picker input {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.picker input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.picker-results {
+  position: absolute; top: calc(100% + 4px); left: 44px; right: 0; z-index: 10;
+  max-height: 260px; overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgba(10, 30, 50, 0.16);
+}
+.picker-option {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+.picker-option small { margin-left: auto; color: var(--ink-3); }
+.picker-option:hover { background: var(--accent-soft); }
+.picker-empty { padding: 8px 10px; color: var(--ink-3); }
+.swap-button {
+  justify-self: start;
+  margin-left: 44px;
+  display: grid; place-items: center;
+  width: 28px; height: 24px; padding: 0;
+  border: 0; border-radius: 6px;
+  background: none;
+  color: var(--ink-3);
+}
+.swap-button:hover { background: var(--surface-2); color: var(--ink); }
+.swap-button svg { width: 16px; height: 16px; }
+.check { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 13px; }
+
+.path-result { padding: 16px 20px 24px; }
+.path-summary { margin: 0 0 12px; color: var(--ink-3); font-size: 13px; }
+.path-steps { margin: 0; padding: 0; list-style: none; }
+.path-entity {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+  font-weight: 600;
+}
+.path-entity small { margin-left: auto; color: var(--ink-3); font-weight: 400; }
+.path-entity:hover { border-color: var(--accent); }
+.path-link {
+  margin-left: 15px;
+  padding: 8px 0 8px 18px;
+  border-left: 2px solid var(--accent);
+}
+.path-link.reversed { border-left-style: dashed; }
+.path-relation { color: var(--accent); font-size: 13px; font-weight: 600; }
+.path-link small { display: block; color: var(--ink-3); font-size: 12px; }
+.path-empty { display: grid; gap: 8px; justify-items: start; }
+.path-empty p { margin: 0; color: var(--ink-2); }
 .muted { color: var(--ink-3); }
 .primary-button {
   height: 38px;

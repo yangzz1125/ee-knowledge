@@ -83,6 +83,7 @@
     <aside class="panel" aria-label="详情与助教">
       <div class="tabs" role="tablist">
         <button class="tab active" id="tabDetail" role="tab" aria-selected="true" aria-controls="detailPane" type="button">知识点</button>
+        <button class="tab" id="tabPath" role="tab" aria-selected="false" aria-controls="pathPane" type="button">学习路径</button>
         <button class="tab" id="tabChat" role="tab" aria-selected="false" aria-controls="chatPane" type="button">课程助教</button>
       </div>
 
@@ -104,6 +105,14 @@
             <div class="formula-display" id="entityFormula"></div>
           </section>
 
+          <section class="detail-section" id="variablesSection" hidden>
+            <h3>变量</h3>
+            <table class="variable-table">
+              <thead><tr><th>符号</th><th>含义</th><th>单位</th></tr></thead>
+              <tbody id="entityVariables"></tbody>
+            </table>
+          </section>
+
           <section class="detail-section" id="definitionSection" hidden>
             <h3>定义</h3>
             <p id="entityDefinition"></p>
@@ -114,13 +123,41 @@
             <ul class="plain-list" id="entityConditions"></ul>
           </section>
 
-          <section class="detail-section">
-            <h3>相关知识</h3>
-            <div class="neighbor-list" id="neighborList"><span class="muted">正在载入</span></div>
+          <section class="detail-section" id="neighborSections">
+            <span class="muted">正在载入</span>
           </section>
 
-          <button class="primary-button" id="askAboutEntity" type="button">向助教提问</button>
+          <div class="detail-actions">
+            <button class="primary-button" id="askAboutEntity" type="button">向助教提问</button>
+            <button class="quiet-button" id="setPathStart" type="button">设为路径起点</button>
+            <button class="quiet-button" id="setPathEnd" type="button">设为路径终点</button>
+          </div>
         </article>
+      </section>
+
+      <section class="pane" id="pathPane" role="tabpanel" aria-labelledby="tabPath" hidden>
+        <form class="path-form" id="pathForm" autocomplete="off">
+          <p class="path-intro">选择两个知识点，查看从一个学到另一个要经过哪些知识。</p>
+          <div class="picker">
+            <label for="pathStart">起点</label>
+            <input id="pathStart" type="text" placeholder="输入知识点名称">
+            <div class="picker-results" hidden></div>
+          </div>
+          <button class="swap-button" id="swapPath" type="button" title="交换起点和终点" aria-label="交换起点和终点">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"></path></svg>
+          </button>
+          <div class="picker">
+            <label for="pathEnd">终点</label>
+            <input id="pathEnd" type="text" placeholder="输入知识点名称">
+            <div class="picker-results" hidden></div>
+          </div>
+          <label class="check">
+            <input id="pathUndirected" type="checkbox">
+            忽略关系方向（只看有没有联系）
+          </label>
+          <button class="primary-button" type="submit">查找路径</button>
+        </form>
+        <div class="path-result" id="pathResult" aria-live="polite"></div>
       </section>
 
       <section class="pane chat-pane" id="chatPane" role="tabpanel" aria-labelledby="tabChat" hidden>
