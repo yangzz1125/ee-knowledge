@@ -2727,6 +2727,138 @@
       "target_id": "antenna",
       "type": "applies_to",
       "description": "天线的极化由其辐射波的极化决定。"
+    },
+    {
+      "source_id": "electric-field-intensity",
+      "target_id": "ohm-law-differential-form",
+      "type": "prerequisite",
+      "description": "J = σE 描述电场驱动电流，需先理解电场强度。"
+    },
+    {
+      "source_id": "current-density",
+      "target_id": "biot-savart-law",
+      "type": "prerequisite",
+      "description": "毕奥-萨伐尔定律由电流元计算磁场，需先理解电流的分布。"
+    },
+    {
+      "source_id": "current-density",
+      "target_id": "ampere-circuital-law",
+      "type": "prerequisite",
+      "description": "安培环路定律把磁场环量与穿过回路的电流联系起来。"
+    },
+    {
+      "source_id": "gauss-law",
+      "target_id": "maxwell-equations",
+      "type": "prerequisite",
+      "description": "高斯定律推广到时变场后成为麦克斯韦方程组的一个方程。"
+    },
+    {
+      "source_id": "ampere-circuital-law",
+      "target_id": "maxwell-equations",
+      "type": "prerequisite",
+      "description": "安培环路定律补充位移电流后成为麦克斯韦方程组的一个方程。"
+    },
+    {
+      "source_id": "helmholtz-theorem",
+      "target_id": "maxwell-equations",
+      "type": "prerequisite",
+      "description": "亥姆霍兹定理说明给出散度和旋度即可确定场，麦克斯韦方程组正是按此组织。"
+    },
+    {
+      "source_id": "permittivity",
+      "target_id": "constitutive-relations",
+      "type": "prerequisite",
+      "description": "本构关系 D = εE 以介电常数为参数。"
+    },
+    {
+      "source_id": "permeability",
+      "target_id": "constitutive-relations",
+      "type": "prerequisite",
+      "description": "本构关系 B = μH 以磁导率为参数。"
+    },
+    {
+      "source_id": "conductivity",
+      "target_id": "constitutive-relations",
+      "type": "prerequisite",
+      "description": "本构关系 J = σE 以电导率为参数。"
+    },
+    {
+      "source_id": "electric-displacement",
+      "target_id": "displacement-current",
+      "type": "prerequisite",
+      "description": "位移电流密度等于电位移矢量对时间的偏导数。"
+    },
+    {
+      "source_id": "magnetic-flux-density",
+      "target_id": "faraday-law",
+      "type": "prerequisite",
+      "description": "感应电动势由穿过回路的磁通量变化决定，磁通量是磁感应强度的面积分。"
+    },
+    {
+      "source_id": "permittivity",
+      "target_id": "phase-velocity",
+      "type": "prerequisite",
+      "description": "无耗介质中相速 v = 1/√(με)，与介电常数有关。"
+    },
+    {
+      "source_id": "permeability",
+      "target_id": "phase-velocity",
+      "type": "prerequisite",
+      "description": "无耗介质中相速 v = 1/√(με)，与磁导率有关。"
+    },
+    {
+      "source_id": "electric-field-intensity",
+      "target_id": "poynting-vector",
+      "type": "prerequisite",
+      "description": "坡印廷矢量由电场和磁场共同决定。"
+    },
+    {
+      "source_id": "magnetic-field-intensity",
+      "target_id": "poynting-vector",
+      "type": "prerequisite",
+      "description": "坡印廷矢量由电场和磁场共同决定。"
+    },
+    {
+      "source_id": "joule-law-differential-form",
+      "target_id": "poynting-theorem",
+      "type": "related_to",
+      "description": "焦耳热功率是坡印廷定理中的损耗项。"
+    },
+    {
+      "source_id": "coulomb-law",
+      "target_id": "biot-savart-law",
+      "type": "related_to",
+      "description": "两者都是平方反比形式的基本实验定律，分别是静电场和恒定磁场的出发点。"
+    },
+    {
+      "source_id": "electric-potential",
+      "target_id": "magnetic-vector-potential",
+      "type": "related_to",
+      "description": "电位和磁矢位分别是静电场和恒定磁场的辅助位函数，可以类比学习。"
+    },
+    {
+      "source_id": "capacitance",
+      "target_id": "inductance",
+      "type": "related_to",
+      "description": "电容和电感分别描述电场和磁场储能的能力，是一对对偶参数。"
+    },
+    {
+      "source_id": "divergence",
+      "target_id": "magnetic-gauss-law",
+      "type": "prerequisite",
+      "description": "磁通连续性原理用散度表达。"
+    },
+    {
+      "source_id": "curl",
+      "target_id": "ampere-circuital-law-differential-form",
+      "type": "prerequisite",
+      "description": "安培环路定律微分形式用旋度表达。"
+    },
+    {
+      "source_id": "curl",
+      "target_id": "faraday-law-differential-form",
+      "type": "prerequisite",
+      "description": "法拉第定律微分形式用旋度表达。"
     }
   ]
 }
