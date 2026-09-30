@@ -73,6 +73,8 @@ function computeLayout(graph, chapters, size, roomy) {
 
   const gap = roomy ? 36 : 62;          // 两节点圆心的最小间距余量
   const restLength = roomy ? 200 : 95;
+  const anchorPull = centerId ? 0.006 : 0.02;
+  const springPull = centerId ? 0.03 : 0.012;
   for (let step = 0; step < 300; step += 1) {
     const cooling = 1 - step / 300;
     nodes.forEach(node => { node.fx = 0; node.fy = 0; });
@@ -97,14 +99,14 @@ function computeLayout(graph, chapters, size, roomy) {
       const dx = b.x - a.x;
       const dy = b.y - a.y;
       const distance = Math.hypot(dx, dy) || 0.01;
-      const pull = (distance - restLength) * 0.012;
+      const pull = (distance - restLength) * springPull;
       a.fx += (dx / distance) * pull; a.fy += (dy / distance) * pull;
       b.fx -= (dx / distance) * pull; b.fy -= (dy / distance) * pull;
     });
     nodes.forEach(node => {
       if (node.fixed) { node.x = middle.x; node.y = middle.y; return; }
-      node.fx += (node.anchor.x - node.x) * 0.02;
-      node.fy += (node.anchor.y - node.y) * 0.02;
+      node.fx += (node.anchor.x - node.x) * anchorPull;
+      node.fy += (node.anchor.y - node.y) * anchorPull;
       node.x += Math.max(-24, Math.min(24, node.fx)) * cooling;
       node.y += Math.max(-24, Math.min(24, node.fy)) * cooling;
       const margin = node.radius + 24;
@@ -308,7 +310,29 @@ export function renderGraph(svg, graph, options) {
     }
   }
 
-  const edgeElements = [];
+  // 节点圆点和名称占据的位置，用来给关系名称找空地。
+  const occupied = [];
+  graph.entities.forEach(entity => {
+    const { x, y } = positions.get(entity.id);
+    const r = dotRadius(entity.id);
+    occupied.push([x, y], [x, y + r + (roomy ? 14 : 10)]);
+    if (roomy) occupied.push([x, y + r + 30]);
+  });
+  const clearance = ([lx, ly]) => Math.min(...occupied.map(([x, y]) => Math.hypot((lx - x) / 60, (ly - y) / 16)));
+
+  /** 沿曲线挑一个离节点和名字最远的位置放关系名称。 */
+  const labelPoint = at => {
+    let best = at(0.5);
+    let bestScore = clearance(best);
+    for (let t = 0.25; t <= 0.75; t += 0.05) {
+      const point = at(t);
+      const score = clearance(point) - Math.abs(t - 0.5) * 0.3;
+      if (score > bestScore) { best = point; bestScore = score; }
+    }
+    return best;
+  };
+
+  const edgeItems = [];
   const edges = svgElement("g", { class: "graph-edges" });
   const edgeLabels = svgElement("g", { class: "graph-edge-labels" });
   graph.relations.forEach(relation => {
@@ -325,31 +349,37 @@ export function renderGraph(svg, graph, options) {
       d,
       class: `graph-edge${highlighted ? " highlighted" : ""}${directed ? "" : " undirected"}`,
     });
-    if (directed) path.setAttribute("marker-end", `url(#${highlighted ? "edgeArrowLit" : "edgeArrow"})`);
-    path.dataset.ends = `${relation.source_id} ${relation.target_id}`;
+    const setArrow = lit => {
+      if (directed) path.setAttribute("marker-end", `url(#${lit ? "edgeArrowLit" : "edgeArrow"})`);
+    };
+    setArrow(highlighted);
     edges.append(path);
-    edgeElements.push(path);
 
-    if (highlighted) {
-      // 名称放在远离选中节点的一侧，避免和选中节点的名字挤在一起。
-      const [lx, ly] = at(relation.source_id === selectedId ? 0.6 : 0.4);
-      const label = svgElement("text", { x: lx, y: ly - 5, class: "graph-edge-label" });
-      label.textContent = relationLabels[relation.type] || relation.type;
-      edgeLabels.append(label);
-    }
+    // 每条关系都准备好名称：选中节点的关系常显，其余只在悬停时出现。
+    const [lx, ly] = labelPoint(at);
+    const label = svgElement("text", {
+      x: lx,
+      y: ly - 4,
+      class: `graph-edge-label${highlighted ? " highlighted" : ""}`,
+    });
+    label.textContent = relationLabels[relation.type] || relation.type;
+    edgeLabels.append(label);
+
+    edgeItems.push({ relation, path, label, highlighted, setArrow });
   });
   layer.append(edges);
 
-  // 悬停时只突出该节点及其直接关联，其余变暗。
+  // 悬停时只突出该节点及其直接关联（连线、箭头、关系名称），其余全部变暗。
   const nodeElements = new Map();
   const focus = id => {
     svg.classList.toggle("focusing", Boolean(id));
     const related = new Set(id ? [id] : []);
-    edgeElements.forEach(path => {
-      const [a, b] = path.dataset.ends.split(" ");
-      const lit = Boolean(id) && (a === id || b === id);
+    edgeItems.forEach(({ relation, path, label, highlighted, setArrow }) => {
+      const lit = Boolean(id) && (relation.source_id === id || relation.target_id === id);
       path.classList.toggle("lit", lit);
-      if (lit) { related.add(a); related.add(b); }
+      label.classList.toggle("lit", lit);
+      setArrow(lit || (!id && highlighted));
+      if (lit) { related.add(relation.source_id); related.add(relation.target_id); }
     });
     nodeElements.forEach((element, nodeId) => element.classList.toggle("lit", related.has(nodeId)));
   };

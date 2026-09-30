@@ -305,7 +305,10 @@ body.resizing-cols .canvas { cursor: col-resize; }
 .graph-edge.highlighted, .graph-edge.lit { stroke: var(--field-lit); stroke-width: 1.8; opacity: 1; }
 .arrow { fill: var(--field-edge); }
 .arrow.lit { fill: var(--field-lit); }
-.graph-edge-label { fill: var(--field-lit); font-size: 12px; text-anchor: middle; paint-order: stroke; stroke: var(--field); stroke-width: 4px; pointer-events: none; }
+.graph-edge-label { fill: var(--field-lit); font-size: 12px; text-anchor: middle; paint-order: stroke; stroke: var(--field); stroke-width: 4px; pointer-events: none; display: none; }
+.graph-edge-label.highlighted { display: inline; }
+.knowledge-graph.focusing .graph-edge-label.highlighted:not(.lit) { display: none; }
+.knowledge-graph.focusing .graph-edge-label.lit { display: inline; }
 
 .graph-node { cursor: pointer; outline: none; transition: opacity 0.15s; }
 .node-glow { fill: var(--node-color); opacity: 0.16; }
