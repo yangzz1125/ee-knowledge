@@ -230,14 +230,23 @@ with patch(
 check("AI 未配置返回 503", r.status_code == 503, r.status_code)
 check("AI 错误码", r.json()["detail"]["code"] == "ai_unavailable", r.json())
 
-with patch("app.api.ai.call_model", return_value="这是模拟的模型回答。"):
+with patch("app.api.ai.call_model", return_value="对「麦克斯韦方程组」取旋度，可以得到「波动方程」。"):
     r = client.post(
         "/api/ai/ask",
         json={"question": "麦克斯韦方程组怎么推导出波动方程？"},
     )
 check("AI 模拟调用成功", r.status_code == 200, r.status_code)
-check("AI 返回模拟回答", r.json()["answer"] == "这是模拟的模型回答。", r.json())
-check("AI 回答引用已有实体", bool(r.json()["used_entity_ids"]), r.json())
+body = r.json()
+check("回答实际引用的知识点", body["used_entity_ids"] == ["maxwell-equations", "wave-equation"], body)
+check("检索命中与实际引用分开统计", set(body["used_entity_ids"]) <= set(body["retrieved_entity_ids"]), body)
+check("引用了知识点则不标记依据不足", body["insufficient_knowledge"] is False, body)
+
+with patch("app.api.ai.call_model", return_value="这是一段没有提到任何知识点名称的回答。"):
+    r = client.post("/api/ai/ask", json={"question": "麦克斯韦方程组怎么推导出波动方程？"})
+body = r.json()
+check("回答没引用知识点时 used 为空", body["used_entity_ids"] == [], body)
+check("回答没引用知识点时仍保留检索结果", bool(body["retrieved_entity_ids"]), body)
+check("回答没引用知识点时标记依据不足", body["insufficient_knowledge"] is True, body)
 
 history = [
     {
@@ -246,12 +255,13 @@ history = [
         "used_entity_ids": ["gauss-law"],
     }
 ]
-with patch("app.api.ai.call_model", return_value="这是连续追问的模拟回答。"):
+with patch("app.api.ai.call_model", return_value="「高斯定律」的适用条件是静电场。"):
     r = client.post(
         "/api/ai/ask",
         json={"question": "它的适用条件是什么？", "history": history},
     )
-check("历史实体可承接省略指代", "gauss-law" in r.json()["used_entity_ids"], r.json())
+check("历史实体可承接省略指代", "gauss-law" in r.json()["retrieved_entity_ids"], r.json())
+check("追问回答引用了历史实体", "gauss-law" in r.json()["used_entity_ids"], r.json())
 
 with patch("app.api.ai.ensure_configured"), patch(
     "app.api.ai.stream_model", return_value=iter(["高斯", "定律"])
@@ -270,6 +280,9 @@ check(
     stream_text,
 )
 check("流式片段完整", "高斯" in stream_text and "定律" in stream_text, stream_text)
+done_data = stream_text.split("event: done")[1].splitlines()[1]
+check("流式 done 事件带实际引用", '"used_entity_ids": ["gauss-law"]' in done_data, done_data)
+check("流式 metadata 只带检索命中", "retrieved_entity_ids" in stream_text.split("event: delta")[0], stream_text)
 
 r = client.post(
     "/api/ai/ask",

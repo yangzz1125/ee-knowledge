@@ -97,7 +97,9 @@ export function initializeChat(options) {
           history,
         },
         (event, data) => {
-          if (event === "metadata") references = data.used_entity_ids || [];
+          // metadata 里只有检索命中的知识点；回答结束时的 done 才带实际引用的知识点。
+          if (event === "metadata") references = data.retrieved_entity_ids || [];
+          if (event === "done" && Array.isArray(data.used_entity_ids)) references = data.used_entity_ids;
           if (event === "delta") {
             if (!answer) answerMessage.textContent = "";
             answer += data.text;

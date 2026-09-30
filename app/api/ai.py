@@ -12,7 +12,7 @@ from ..ai import AIUnavailable, call_model, ensure_configured, stream_model
 from ..dependencies import graph
 from ..domain.api import AIAnswerResponse, AIQuestionRequest
 from ..domain.results import RetrievalContext
-from ..knowledge import build_retrieval_context
+from ..knowledge import build_retrieval_context, cited_entity_ids
 
 router = APIRouter(prefix="/api/ai", tags=["AI 问答"])
 
@@ -41,12 +41,17 @@ def _retrieve(request: AIQuestionRequest) -> tuple[RetrievalContext, bool]:
     )
 
 
-def _references(context: RetrievalContext) -> tuple[list[str], str | None]:
-    """过滤不存在的引用 ID，并返回需要展示的提示。"""
-    used = [i for i in context.matched_entity_ids if i in graph.by_id]
-    unknown = [i for i in context.matched_entity_ids if i not in graph.by_id]
-    message = f"忽略了不存在的知识点：{'、'.join(unknown)}" if unknown else None
-    return used, message
+def _retrieved(context: RetrievalContext) -> list[str]:
+    """检索命中的知识点 ID（只保留知识库里存在的）。"""
+    return [i for i in context.matched_entity_ids if i in graph.by_id]
+
+
+def _finish(answer: str, context: RetrievalContext) -> tuple[list[str], bool, str | None]:
+    """统计回答实际引用的知识点，返回 (引用 ID, 是否缺乏依据, 提示)。"""
+    used = [i for i in cited_entity_ids(answer, context) if i in graph.by_id]
+    if not used:
+        return [], True, "回答没有引用任何知识点，请谨慎参考。"
+    return used, False, None
 
 
 def _ai_error(exc: Exception) -> tuple[int, str, str]:
@@ -64,6 +69,7 @@ def ask(request: AIQuestionRequest) -> AIAnswerResponse:
         return AIAnswerResponse(
             answer=_INSUFFICIENT_ANSWER,
             used_entity_ids=[],
+            retrieved_entity_ids=[],
             insufficient_knowledge=True,
             message=context.retrieval_message or _INSUFFICIENT_MESSAGE,
         )
@@ -77,18 +83,12 @@ def ask(request: AIQuestionRequest) -> AIAnswerResponse:
             detail={"code": code, "message": message, "field": None},
         ) from None
 
-    used, message = _references(context)
-    if not used:
-        return AIAnswerResponse(
-            answer=answer,
-            used_entity_ids=[],
-            insufficient_knowledge=True,
-            message="回答没有引用任何知识点，请谨慎参考。",
-        )
+    used, insufficient_answer, message = _finish(answer, context)
     return AIAnswerResponse(
         answer=answer,
         used_entity_ids=used,
-        insufficient_knowledge=False,
+        retrieved_entity_ids=_retrieved(context),
+        insufficient_knowledge=insufficient_answer,
         message=message,
     )
 
@@ -102,27 +102,30 @@ def _stream_events(context: RetrievalContext, insufficient: bool) -> Iterator[st
     """依次产生 metadata、delta、done 或 error 事件。"""
     if insufficient:
         message = context.retrieval_message or _INSUFFICIENT_MESSAGE
-        yield _sse(
-            "metadata",
-            {"used_entity_ids": [], "insufficient_knowledge": True},
-        )
+        yield _sse("metadata", {"retrieved_entity_ids": [], "insufficient_knowledge": True})
         yield _sse("delta", {"text": _INSUFFICIENT_ANSWER})
-        yield _sse("done", {"message": message})
+        yield _sse("done", {"used_entity_ids": [], "insufficient_knowledge": True, "message": message})
         return
 
-    used, message = _references(context)
     yield _sse(
         "metadata",
-        {"used_entity_ids": used, "insufficient_knowledge": not bool(used)},
+        {"retrieved_entity_ids": _retrieved(context), "insufficient_knowledge": False},
     )
+    parts: list[str] = []
     try:
         for text in stream_model(context.question, context):
+            parts.append(text)
             yield _sse("delta", {"text": text})
     except Exception as exc:
         _, code, error_message = _ai_error(exc)
         yield _sse("error", {"code": code, "message": error_message})
         return
-    yield _sse("done", {"message": message})
+    # 回答全部生成后才能知道实际引用了哪些知识点。
+    used, insufficient_answer, message = _finish("".join(parts), context)
+    yield _sse(
+        "done",
+        {"used_entity_ids": used, "insufficient_knowledge": insufficient_answer, "message": message},
+    )
 
 
 @router.post("/ask/stream")

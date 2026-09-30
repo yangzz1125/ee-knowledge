@@ -27,7 +27,10 @@ class AIAnswerResponse(StrictModel):
     """AI 问答响应。"""
 
     answer: str
+    #: 回答文字里实际引用的知识点（名称或别名出现在回答中）。
     used_entity_ids: list[str]
+    #: 检索阶段命中的知识点，模型不一定都用；与 used_entity_ids 对照可看出检索的浪费。
+    retrieved_entity_ids: list[str] = Field(default_factory=list)
     insufficient_knowledge: bool
     message: str | None = None
 
