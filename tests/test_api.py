@@ -77,7 +77,7 @@ check(
     r.json(),
 )
 
-r = client.get("/api/entities", params={"keyword": ""})
+r = client.get("/api/entities", params={"keyword": "", "limit": 200})
 browse = r.json()
 check("空关键词 = 浏览", len(browse) == health["counts"]["entities"], len(browse))
 check("浏览模式分数为 0", all(x["score"] == 0.0 for x in browse))
