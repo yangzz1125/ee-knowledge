@@ -76,6 +76,8 @@ function updateGraphHeading(graph) {
       ? chapterName(state.chapterId)
       : "完整课程";
   $("#graphContext").textContent = context;
+  // 进入局部图或做了筛选后，给出回到完整图谱的入口。
+  $("#backToAll").hidden = !(state.localMode || state.chapterId || state.entityType);
   $("#graphSummary").textContent = `${graph.entities.length} 个知识点，${graph.relations.length} 条关系`;
 }
 
@@ -275,6 +277,10 @@ function initializeSearch() {
     if (!event.target.closest("#searchForm")) $("#searchResults").hidden = true;
   });
   window.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !event.target.closest("input, textarea") && !$("#backToAll").hidden) {
+      resetGraph();
+      return;
+    }
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
       input.focus();
@@ -391,6 +397,7 @@ async function start() {
   $("#tabDetail").addEventListener("click", () => showTab("detail"));
   $("#tabChat").addEventListener("click", () => showTab("chat"));
   $("#resetView").addEventListener("click", resetGraph);
+  $("#backToAll").addEventListener("click", resetGraph);
   const controls = graphControls($("#knowledgeGraph"));
   $("#zoomIn").addEventListener("click", () => controls.zoomBy(1.3));
   $("#zoomOut").addEventListener("click", () => controls.zoomBy(1 / 1.3));

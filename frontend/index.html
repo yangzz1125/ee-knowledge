@@ -60,6 +60,10 @@
       <div class="stage-head">
         <h1 id="graphTitle">知识图谱</h1>
         <p><span id="graphContext">完整课程</span> · <span id="graphSummary"></span></p>
+        <button class="back-button" id="backToAll" type="button" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+          返回完整图谱
+        </button>
       </div>
       <div class="canvas" id="graphScroll">
         <svg class="knowledge-graph" id="knowledgeGraph" role="img" aria-label="课程知识图谱"></svg>
@@ -73,7 +77,7 @@
         <button id="zoomOut" type="button" title="缩小" aria-label="缩小"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
         <button id="fitGraph" type="button" title="适应窗口" aria-label="适应窗口"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg></button>
       </div>
-      <p class="canvas-hint">滚轮缩放 · 拖动平移 · 双击空白处复位</p>
+      <p class="canvas-hint">滚轮缩放 · 拖动平移 · 双击空白处复位 · Esc 返回完整图谱</p>
     </main>
 
     <aside class="panel" aria-label="详情与助教">

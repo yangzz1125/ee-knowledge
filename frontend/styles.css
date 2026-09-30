@@ -252,6 +252,19 @@ button.search-result:hover { background: var(--accent-soft); }
 .stage-head { position: absolute; top: 18px; left: 22px; z-index: 2; pointer-events: none; }
 .stage-head h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.06em; }
 .stage-head p { margin: 2px 0 0; color: var(--field-ink-2); font-size: 13px; }
+.back-button {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 10px;
+  padding: 5px 12px 5px 8px;
+  border: 1px solid rgba(160, 190, 230, 0.22);
+  border-radius: 999px;
+  background: rgba(15, 26, 43, 0.72);
+  color: var(--field-ink);
+  font-size: 13px;
+  pointer-events: auto;
+}
+.back-button:hover { border-color: var(--field-lit); color: var(--field-lit); }
+.back-button svg { width: 15px; height: 15px; }
 
 .canvas {
   position: absolute;
