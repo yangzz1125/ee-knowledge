@@ -351,7 +351,6 @@ textarea:focus-visible,
 }
 
 .knowledge-graph { display: block; width: 100%; height: 100%; min-width: 760px; min-height: 0; }
-.orbit-guide { fill: none; stroke: color-mix(in srgb, var(--field) 14%, transparent); stroke-width: 1; stroke-dasharray: 3 7; }
 .graph-edge { stroke: color-mix(in srgb, var(--field) 44%, var(--line)); stroke-width: 1.25; fill: none; }
 .graph-edge.highlighted { stroke: var(--accent); stroke-width: 2.2; }
 .graph-edge-label { fill: var(--tertiary); font-size: 9px; text-anchor: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
@@ -374,6 +373,8 @@ textarea:focus-visible,
 .graph-node.selected .node-surface { fill: color-mix(in srgb, var(--node-color) 9%, var(--surface)); }
 .graph-node .node-name { fill: var(--text); font-size: 11px; font-weight: 650; text-anchor: middle; pointer-events: none; }
 .graph-node.selected .node-name { font-size: 12px; }
+.graph-node.compact .node-surface { fill: color-mix(in srgb, var(--node-color) 24%, var(--surface)); filter: none; }
+.graph-node.compact .node-name { font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
 .graph-node .node-type { fill: var(--secondary); font-size: 8px; text-anchor: middle; pointer-events: none; }
 
 .empty-state,
