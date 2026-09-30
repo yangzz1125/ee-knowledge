@@ -319,7 +319,6 @@ body.resizing-cols .canvas { cursor: col-resize; }
 .node-name { fill: var(--field-ink); font-size: 12px; text-anchor: middle; paint-order: stroke; stroke: var(--field); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
 .graph-node.roomy .node-name { font-size: 14px; font-weight: 600; }
 .graph-node.selected .node-name { font-weight: 700; }
-.node-type { fill: var(--field-ink-2); font-size: 11px; text-anchor: middle; pointer-events: none; }
 
 /* 悬停聚焦：无关的节点和连线淡出 */
 .knowledge-graph.focusing .graph-node:not(.lit) { opacity: 0.22; }

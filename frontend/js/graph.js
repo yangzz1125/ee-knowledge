@@ -316,7 +316,6 @@ export function renderGraph(svg, graph, options) {
     const { x, y } = positions.get(entity.id);
     const r = dotRadius(entity.id);
     occupied.push([x, y], [x, y + r + (roomy ? 14 : 10)]);
-    if (roomy) occupied.push([x, y + r + 30]);
   });
   const clearance = ([lx, ly]) => Math.min(...occupied.map(([x, y]) => Math.hypot((lx - x) / 60, (ly - y) / 16)));
 
@@ -406,11 +405,6 @@ export function renderGraph(svg, graph, options) {
     const limit = roomy ? 12 : 9;
     name.textContent = entity.name.length > limit ? `${entity.name.slice(0, limit - 1)}…` : entity.name;
     group.append(name);
-    if (roomy) {
-      const type = svgElement("text", { class: "node-type", x: "0", y: String(radius + 34) });
-      type.textContent = typeLabels[entity.type] || entity.type;
-      group.append(type);
-    }
 
     const title = svgElement("title");
     title.textContent = `${entity.name}：${entity.summary}`;
