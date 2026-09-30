@@ -23,25 +23,26 @@ function splitLabel(text, maxLength = 7) {
   return [first, rest.length > maxLength ? `${rest.slice(0, maxLength - 1)}…` : rest];
 }
 
-function placeRing(items, radiusX, radiusY, nodeRadius, positions, layer, angleOffset = -Math.PI / 2) {
+// 两圈轨道：内圈放核心节点，外圈放其余节点。
+const RINGS = [
+  { rx: 175, ry: 105, nodeRadius: 43 },
+  { rx: 310, ry: 165, nodeRadius: 39 },
+];
+
+function placeRing(items, ring, positions, angleOffset = -Math.PI / 2) {
   items.forEach((entity, index) => {
     const angle = angleOffset + index * (Math.PI * 2 / Math.max(items.length, 1));
     positions.set(entity.id, {
-      x: CENTER.x + Math.cos(angle) * radiusX,
-      y: CENTER.y + Math.sin(angle) * radiusY,
-      radius: nodeRadius,
-      layer,
+      x: CENTER.x + Math.cos(angle) * ring.rx,
+      y: CENTER.y + Math.sin(angle) * ring.ry,
+      radius: ring.nodeRadius,
     });
   });
 }
 
-function adjacencyFor(graph) {
-  const adjacency = new Map(graph.entities.map(entity => [entity.id, new Set()]));
-  graph.relations.forEach(relation => {
-    adjacency.get(relation.source_id)?.add(relation.target_id);
-    adjacency.get(relation.target_id)?.add(relation.source_id);
-  });
-  return adjacency;
+function placeRings(inner, outer, positions) {
+  placeRing(inner, RINGS[0], positions);
+  placeRing(outer, RINGS[1], positions, -Math.PI / 2 + Math.PI / Math.max(outer.length, 1));
 }
 
 function localPositions(graph) {
@@ -50,24 +51,19 @@ function localPositions(graph) {
   const center = graph.entities.find(entity => entity.id === centerId);
   if (!center) return positions;
 
-  positions.set(center.id, { ...CENTER, radius: 54, layer: 0 });
-  const adjacency = adjacencyFor(graph);
-  const distances = new Map([[center.id, 0]]);
-  const queue = [center.id];
-  while (queue.length) {
-    const current = queue.shift();
-    const distance = distances.get(current);
-    adjacency.get(current)?.forEach(next => {
-      if (distances.has(next)) return;
-      distances.set(next, distance + 1);
-      queue.push(next);
-    });
-  }
-
-  const inner = graph.entities.filter(entity => distances.get(entity.id) === 1);
-  const outer = graph.entities.filter(entity => entity.id !== center.id && distances.get(entity.id) !== 1);
-  placeRing(inner, 175, 105, 43, positions, 1);
-  placeRing(outer, 310, 165, 39, positions, 2, -Math.PI / 2 + Math.PI / Math.max(outer.length, 1));
+  positions.set(center.id, { ...CENTER, radius: 54 });
+  // 内圈只放与中心直接相连的节点，其余都在外圈。
+  const direct = new Set();
+  graph.relations.forEach(({ source_id: a, target_id: b }) => {
+    if (a === center.id) direct.add(b);
+    if (b === center.id) direct.add(a);
+  });
+  const others = graph.entities.filter(entity => entity.id !== center.id);
+  placeRings(
+    others.filter(entity => direct.has(entity.id)),
+    others.filter(entity => !direct.has(entity.id)),
+    positions,
+  );
   return positions;
 }
 
@@ -85,16 +81,7 @@ function globalPositions(graph, chapters) {
     || left.id.localeCompare(right.id)
   );
   const innerCount = Math.min(6, Math.max(1, Math.round(ranked.length * 0.38)));
-  placeRing(ranked.slice(0, innerCount), 175, 105, 43, positions, 1);
-  placeRing(
-    ranked.slice(innerCount),
-    310,
-    165,
-    39,
-    positions,
-    2,
-    -Math.PI / 2 + Math.PI / Math.max(ranked.length - innerCount, 1),
-  );
+  placeRings(ranked.slice(0, innerCount), ranked.slice(innerCount), positions);
   return positions;
 }
 
@@ -114,26 +101,14 @@ function edgeCoordinates(source, target, directed) {
 
 function appendGuides(svg) {
   const guides = svgElement("g", { class: "orbit-guides", "aria-hidden": "true" });
-  [[175, 105], [310, 165]].forEach(([radiusX, radiusY]) => {
-    guides.append(svgElement("ellipse", {
-      cx: CENTER.x,
-      cy: CENTER.y,
-      rx: radiusX,
-      ry: radiusY,
-      class: "orbit-guide",
-    }));
+  RINGS.forEach(({ rx, ry }) => {
+    guides.append(svgElement("ellipse", { cx: CENTER.x, cy: CENTER.y, rx, ry, class: "orbit-guide" }));
   });
   svg.append(guides);
 }
 
 export function renderGraph(svg, graph, options) {
-  const {
-    chapters,
-    typeLabels,
-    relationLabels,
-    selectedId,
-    onSelect,
-  } = options;
+  const { chapters, typeLabels, relationLabels, selectedId, onSelect } = options;
   svg.textContent = "";
   const localMode = Boolean(graph.center_id);
   const positions = localMode

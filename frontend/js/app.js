@@ -22,6 +22,14 @@ const state = {
   localMode: false,
 };
 
+/** 创建带 class 和文字的元素。 */
+function el(tag, className, text) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (text !== undefined) element.textContent = text;
+  return element;
+}
+
 let toastTimer;
 function notify(message) {
   const toast = $("#toast");
@@ -94,16 +102,10 @@ function renderChapters() {
   const container = $("#chapterList");
   container.textContent = "";
   state.chapters.forEach(chapter => {
-    const button = document.createElement("button");
+    const button = el("button", "chapter-button");
     button.type = "button";
-    button.className = "chapter-button";
     button.dataset.chapterId = chapter.id;
-    const index = document.createElement("span");
-    index.className = "chapter-index";
-    index.textContent = String(chapter.order).padStart(2, "0");
-    const name = document.createElement("span");
-    name.textContent = chapter.name;
-    button.append(index, name);
+    button.append(el("span", "chapter-index", String(chapter.order).padStart(2, "0")), el("span", "", chapter.name));
     button.addEventListener("click", () => {
       state.chapterId = state.chapterId === chapter.id ? null : chapter.id;
       state.selectedId = null;
@@ -119,16 +121,11 @@ function renderTypes(types) {
   const container = $("#typeList");
   container.textContent = "";
   types.forEach(type => {
-    const button = document.createElement("button");
+    const button = el("button", "type-button");
     button.type = "button";
-    button.className = "type-button";
     button.dataset.entityType = type.value;
     button.style.setProperty("--type-color", TYPE_COLORS[type.value]);
-    const dot = document.createElement("span");
-    dot.className = "type-dot";
-    const label = document.createElement("span");
-    label.textContent = type.label;
-    button.append(dot, label);
+    button.append(el("span", "type-dot"), el("span", "", type.label));
     button.addEventListener("click", () => {
       state.entityType = state.entityType === type.value ? null : type.value;
       updateActiveFilters();
@@ -154,12 +151,7 @@ function clearInspector() {
 }
 
 function setList(element, values) {
-  element.textContent = "";
-  values.forEach(value => {
-    const item = document.createElement("li");
-    item.textContent = value;
-    element.append(item);
-  });
+  element.replaceChildren(...values.map(value => el("li", "", value)));
 }
 
 function renderEntityDetail(entity) {
@@ -199,10 +191,9 @@ async function renderNeighbors(entityId) {
       return;
     }
     result.items.forEach(item => {
-      const button = document.createElement("button");
+      const label = state.relationLabels[item.relation.type] || item.relation.type;
+      const button = el("button", "neighbor-button", `${item.entity.name} · ${label}`);
       button.type = "button";
-      button.className = "neighbor-button";
-      button.textContent = `${item.entity.name} · ${state.relationLabels[item.relation.type] || item.relation.type}`;
       button.addEventListener("click", () => selectEntity(item.entity.id));
       container.append(button);
     });
@@ -231,24 +222,17 @@ function renderSearchResults(results) {
   const container = $("#searchResults");
   container.textContent = "";
   if (!results.length) {
-    const empty = document.createElement("div");
-    empty.className = "search-result";
-    empty.textContent = "没有找到相关知识点";
-    container.append(empty);
+    container.append(el("div", "search-result", "没有找到相关知识点"));
   }
   results.forEach(result => {
     const entity = result.entity;
-    const button = document.createElement("button");
+    const button = el("button", "search-result");
     button.type = "button";
-    button.className = "search-result";
-    const name = document.createElement("strong");
-    name.textContent = entity.name;
-    const type = document.createElement("small");
-    type.textContent = state.typeLabels[entity.type] || entity.type;
-    const summary = document.createElement("small");
-    summary.className = "result-summary";
-    summary.textContent = entity.summary;
-    button.append(name, type, summary);
+    button.append(
+      el("strong", "", entity.name),
+      el("small", "", state.typeLabels[entity.type] || entity.type),
+      el("small", "result-summary", entity.summary),
+    );
     button.addEventListener("click", () => {
       container.hidden = true;
       $("#searchInput").value = entity.name;
@@ -390,8 +374,7 @@ async function start() {
   $("#askAboutEntity").addEventListener("click", () => {
     if (state.selectedId) chat.ask(`请解释${entityName(state.selectedId)}，并说明它的关键点。`);
   });
-  $("#resetView").addEventListener("click", resetGraph);
-  $("#fitGraph").addEventListener("click", resetGraph);
+  ["#resetView", "#fitGraph"].forEach(selector => $(selector).addEventListener("click", resetGraph));
 
   try {
     const { health, meta, chapters, graph } = await loadApplicationData();

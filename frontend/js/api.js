@@ -15,30 +15,23 @@ async function request(path, options) {
   return response;
 }
 
+const getJson = async path => (await request(path)).json();
+
 export async function loadApplicationData() {
-  const [health, meta, chapters, graph] = await Promise.all([
-    request("/health").then(response => response.json()),
-    request("/meta").then(response => response.json()),
-    request("/chapters").then(response => response.json()),
-    request("/graph").then(response => response.json()),
-  ]);
+  const [health, meta, chapters, graph] = await Promise.all(
+    ["/health", "/meta", "/chapters", "/graph"].map(getJson),
+  );
   return { health, meta, chapters, graph };
 }
 
-export async function searchEntities(keyword) {
-  const query = new URLSearchParams({ keyword, limit: "12" });
-  return request(`/entities?${query}`).then(response => response.json());
-}
+export const searchEntities = keyword =>
+  getJson(`/entities?${new URLSearchParams({ keyword, limit: "12" })}`);
 
-export async function loadNeighbors(entityId) {
-  return request(`/entities/${encodeURIComponent(entityId)}/neighbors`)
-    .then(response => response.json());
-}
+export const loadNeighbors = entityId =>
+  getJson(`/entities/${encodeURIComponent(entityId)}/neighbors`);
 
-export async function loadLocalGraph(entityId, depth = 1) {
-  const query = new URLSearchParams({ center_id: entityId, depth: String(depth) });
-  return request(`/graph?${query}`).then(response => response.json());
-}
+export const loadLocalGraph = (entityId, depth = 1) =>
+  getJson(`/graph?${new URLSearchParams({ center_id: entityId, depth })}`);
 
 export async function streamAnswer(payload, onEvent, signal) {
   const response = await request("/ai/ask/stream", {

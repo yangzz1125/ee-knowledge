@@ -13,12 +13,7 @@ function loadStoredHistory() {
         && typeof turn?.answer === "string"
         && Array.isArray(turn?.used_entity_ids)
       )
-      .slice(-10)
-      .map(turn => ({
-        question: turn.question.slice(0, 500),
-        answer: turn.answer.slice(0, 4000),
-        used_entity_ids: turn.used_entity_ids.filter(id => typeof id === "string"),
-      }));
+      .slice(-10);
   } catch {
     try { sessionStorage.removeItem(HISTORY_KEY); } catch { /* 存储不可用时退化为内存历史。 */ }
     return [];
@@ -30,16 +25,7 @@ function saveHistory(history) {
 }
 
 export function initializeChat(options) {
-  const {
-    form,
-    input,
-    sendButton,
-    conversation,
-    clearButton,
-    getContextEntityId,
-    entityName,
-    notify,
-  } = options;
+  const { form, input, sendButton, conversation, clearButton, getContextEntityId, entityName, notify } = options;
 
   let history = loadStoredHistory();
   let activeController = null;
@@ -54,20 +40,28 @@ export function initializeChat(options) {
     return message;
   }
 
+  function writeReferences(element) {
+    const ids = JSON.parse(element.dataset.entityIds);
+    element.textContent = `依据：${ids.map(entityName).join("、")}`;
+  }
+
   function showReferences(message, ids) {
     if (!ids.length) return;
     const references = document.createElement("div");
     references.className = "message-references";
     references.dataset.entityIds = JSON.stringify(ids);
-    references.textContent = `依据：${ids.map(entityName).join("、")}`;
+    writeReferences(references);
     message.append(references);
   }
 
   function refreshReferences() {
-    conversation.querySelectorAll(".message-references").forEach(element => {
-      const ids = JSON.parse(element.dataset.entityIds || "[]");
-      element.textContent = `依据：${ids.map(entityName).join("、")}`;
-    });
+    conversation.querySelectorAll(".message-references").forEach(writeReferences);
+  }
+
+  function showError(message, text) {
+    message.classList.remove("streaming");
+    message.classList.add("error");
+    message.textContent = text;
   }
 
   function restoreConversation() {
@@ -112,9 +106,7 @@ export function initializeChat(options) {
           }
           if (event === "error") {
             failed = true;
-            answerMessage.classList.remove("streaming");
-            answerMessage.classList.add("error");
-            answerMessage.textContent = data.message || "回答生成失败";
+            showError(answerMessage, data.message || "回答生成失败");
           }
           if (event === "done" && !failed) {
             answerMessage.classList.remove("streaming");
@@ -126,19 +118,11 @@ export function initializeChat(options) {
       );
 
       if (!failed && answer) {
-        history.push({
-          question,
-          answer: answer.slice(0, 4000),
-          used_entity_ids: references,
-        });
-        history = history.slice(-10);
+        history = [...history, { question, answer: answer.slice(0, 4000), used_entity_ids: references }].slice(-10);
         saveHistory(history);
       }
     } catch (error) {
-      failed = true;
-      answerMessage.classList.remove("streaming");
-      answerMessage.classList.add("error");
-      answerMessage.textContent = error.name === "AbortError" ? "回答已停止" : error.message;
+      showError(answerMessage, error.name === "AbortError" ? "回答已停止" : error.message);
     } finally {
       activeController = null;
       sendButton.disabled = false;
