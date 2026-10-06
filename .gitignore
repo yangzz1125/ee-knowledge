@@ -19,6 +19,16 @@ reference-projects/
 scratch/
 NUL
 
+# LaTeX build intermediates
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.xdv
+
 # Editor / OS
 .vscode/
 .DS_Store

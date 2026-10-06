@@ -1,0 +1,381 @@
+% 《电磁场与波》AI 知识图谱第二次汇报：对象与数据结构设计
+% 编译：xelatex report.tex（运行两次以生成交叉引用）
+\documentclass[UTF8,a4paper,zihao=-4]{ctexart}
+
+\usepackage[margin=2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,tabularx,array}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,shapes.geometric}
+\usepackage{caption}
+\usepackage[section]{placeins}
+
+% 配色与上次汇报的配图保持一致
+\definecolor{cBlue}{HTML}{1F6FEB}
+\definecolor{cTeal}{HTML}{0EA5A0}
+\definecolor{cPurple}{HTML}{7C3AED}
+\definecolor{cOrange}{HTML}{F59E0B}
+\definecolor{cRed}{HTML}{EF4444}
+\definecolor{cGreen}{HTML}{10B981}
+\definecolor{cInk}{HTML}{1E293B}
+\definecolor{cGray}{HTML}{64748B}
+\definecolor{cLine}{HTML}{CBD5E1}
+\definecolor{cBg}{HTML}{F1F5F9}
+
+\ctexset{
+  section = {format = \Large\bfseries, name = {,、}, number = \chinese{section}, aftername = {},
+             beforeskip = 1.2em, afterskip = 0.6em},
+  subsection = {format = \large\bfseries, name = {（,）}, number = \chinese{subsection}, aftername = {},
+                beforeskip = 0.8em, afterskip = 0.4em},
+}
+\captionsetup{font=small, labelsep=quad}
+\linespread{1.25}
+\renewcommand{\arraystretch}{1.3}
+\pagestyle{plain}
+
+\tikzset{
+  ent/.style = {draw=#1, fill=#1!10, rounded corners=3pt, line width=0.8pt,
+                minimum height=0.95cm, minimum width=2.7cm, align=center, font=\small},
+  box/.style = {draw=#1, fill=#1!8, rounded corners=4pt, line width=0.8pt, align=left, font=\small,
+                inner sep=6pt},
+  rel/.style = {-{Stealth[length=2.6mm]}, line width=0.8pt, color=cGray},
+  undirected/.style = {line width=0.8pt, color=cGray, dashed},
+  rlabel/.style = {font=\scriptsize, fill=white, inner sep=1.5pt, text=cInk},
+}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries 电磁场与波 AI 知识图谱对象与数据结构设计}
+\end{center}
+\vspace{0.5em}
+
+% ============================================================
+\section{本次工作内容}
+
+上次汇报完成了前期调研和初步系统架构设计，并初步识别出六类课程知识对象：概念、物理量、定律或定理、公式或方程、分析方法和工程应用。当时只确定了对象的大致范围，还没有说清楚每类对象具体记录哪些内容、对象之间怎样引用、关系怎样命名和定向，也没有考虑数据写错时怎样发现。
+
+本次工作进入第三阶段，即对象与数据结构设计。主要做了三件事：一是确定系统中有哪些对象以及它们各自的职责；二是为知识实体和知识关系定义具体字段；三是制定数据校验规则，保证人工整理的课程知识在进入系统前格式正确、引用完整。
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}[
+  stage/.style = {circle, fill=#1, text=white, font=\bfseries, minimum size=0.9cm},
+  card/.style  = {draw=#1, line width=0.8pt, rounded corners=3pt, fill=white, text width=2.6cm,
+                  align=left, font=\footnotesize, inner sep=5pt},
+]
+  \draw[cLine, line width=3pt, rounded corners] (-0.6,0) -- (14.0,0);
+  \foreach \i/\c/\t/\a/\b/\d in {
+      1/cBlue/需求与调研/明确研究问题/调研相关案例/确定课程范围,
+      2/cTeal/系统架构设计/划分系统层次/明确模块职责/梳理数据流向,
+      3/cPurple/对象与数据结构/设计知识对象/定义字段与关系/制定校验规则,
+      4/cOrange/样例与原型实现/建立章节样例/实现查询功能/接入课程问答,
+      5/cRed/测试与评价/扩充教材知识/检查问答质量/开展师生试用} {
+    \pgfmathsetmacro{\x}{(\i-1)*3.35}
+    \node[stage=\c] (s\i) at (\x,0) {\i};
+    \pgfmathsetmacro{\y}{ifthenelse(mod(\i,2)==1,-1.95,1.95)}
+    \node[card=\c] (c\i) at (\x,\y) {\textbf{\color{\c}\t}\\[2pt]· \a\\· \b\\· \d};
+    \draw[\c, line width=1pt] (s\i) -- (c\i);
+  }
+  \node[fill=cPurple, text=white, font=\scriptsize\bfseries, rounded corners=6pt, inner sep=3pt]
+       at ($(c3.north)+(0,0.05)$) {本次进度};
+\end{tikzpicture}
+\caption{分阶段建设路线，本次处于第三阶段}
+\label{fig:roadmap}
+\end{figure}
+
+% ============================================================
+\section{知识对象设计}
+
+\subsection{对象的划分}
+
+设计时首先区分了两类东西：一类是需要长期保存的课程知识，另一类是系统运行时根据用户请求临时算出来的结果。前者由人工依据教材整理，保存在知识库中；后者包括搜索结果、某个知识点的相邻知识、两个知识点之间的路径，以及问答时检索到的上下文和模型的回答，这些都由后端即时生成，不写回知识库。这样，课程知识始终只有一份，搜索、路径和问答都从同一份数据读取，不会出现几处内容不一致的情况。
+
+需要保存的课程知识包括三种对象：章节、知识实体和知识关系。公式中的变量比较特殊，它不单独保存，而是作为公式的一部分记录在公式实体里面。
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}[node distance=0.35cm]
+  \node[ent=cBlue, minimum width=3.3cm] (ch) {章节};
+  \node[ent=cPurple, minimum width=3.3cm, below=of ch] (en) {知识实体};
+  \node[ent=cOrange, minimum width=2.8cm, below=0.25cm of en, font=\scriptsize] (fv) {公式变量（随公式保存）};
+  \node[ent=cTeal, minimum width=3.3cm, below=0.35cm of fv] (re) {知识关系};
+  \begin{scope}[on background layer]
+    \node[draw=cInk, fill=cBg, rounded corners=6pt, line width=1pt, inner sep=10pt,
+          fit=(ch)(en)(fv)(re), label={[font=\bfseries\small, text=cInk]above:知识库（人工整理）}] (kb) {};
+  \end{scope}
+  \draw[cOrange, line width=0.8pt] (en) -- (fv);
+
+  \node[box=cGray, anchor=south west, text width=5.2cm] (q) at ($(kb.east)+(2.0,0.25)$)
+    {\textbf{查询结果}\\[2pt]搜索结果、相邻知识、学习路径、局部图谱};
+  \node[box=cGray, anchor=north west, text width=5.2cm] (a) at ($(kb.east)+(2.0,-0.25)$)
+    {\textbf{问答结果}\\[2pt]问题、检索到的知识、模型回答及引用依据};
+  \draw[rel, color=cInk] (kb.east |- q.west) -- node[rlabel, above]{查询} (q.west);
+  \draw[rel, color=cInk] (kb.east |- a.west) -- node[rlabel, above]{检索后生成} (a.west);
+  \node[font=\scriptsize, text=cGray, below=0.15cm of a] {运行时生成，不写回知识库};
+\end{tikzpicture}
+\caption{对象划分：一份课程知识，多种运行时结果}
+\label{fig:objects}
+\end{figure}
+
+\subsection{章节与知识点的关系}
+
+章节和知识点的分工需要先说清楚。章节只用于课程导航和排序，不算作知识点，不出现在图谱中，也不和知识点建立关系。目前按教材设置 6 个章节：矢量分析、静电场、恒定电流场、恒定磁场、时变电磁场和电磁波，章节之间暂不分层级。
+
+每个知识点只属于一个章节。很多知识点会在后续章节中反复用到，例如静电场中的高斯定律后来成为麦克斯韦方程组的一部分，但这类联系通过知识关系表达，而不是让高斯定律同时属于两个章节。这样章节归属始终清楚，跨章节的联系也能在图谱中直接看到。
+
+有些章节名本身也是重要概念，例如「静电场」。这种情况下，章节和概念分别保留：章节说明这一章研究什么，概念记录静电场的正式定义和基本性质。
+
+\subsection{公式单独作为知识点}
+
+上次调研的结论之一是，知识组织需要细化到公式和适用条件。因此公式不作为一段文字附在定律后面，而是单独作为一个知识点。这样公式可以被搜索、点击，可以和定律、物理量、其他公式建立联系，也可以单独展示它的变量和成立条件。比如高斯定律对应积分形式和微分形式两个公式，两者都是独立的知识点，通过关系与高斯定律相连。
+
+每个对象都有一个英文编号，例如麦克斯韦方程组的编号是 maxwell-equations。编号创建后不再修改，名称改了也不影响已有的引用；界面上显示的仍然是中文名称。
+
+% ============================================================
+\section{知识点的内容设计}
+
+\subsection{共有内容与各类专有内容}
+
+六类知识点有一部分内容是共有的：名称、类型、一句话说明、所属章节、别名、标签和适用条件。别名用于搜索，例如搜「高斯定理」也能找到高斯定律。适用条件单独列出，是因为它对理解公式和定律很重要：公式的成立条件、方法的适用范围、定律的有效条件都记录在这里，学生查看任何一个知识点时都能在同一位置看到。
+
+除共有内容外，每类知识点还有自己专有的内容，如图~\ref{fig:entity} 所示。
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}
+  \node[box=cInk, text width=4.2cm, fill=cBg] (common) {
+    \textbf{共有内容}\\[3pt]
+    编号、名称、类型\\
+    一句话说明\\
+    所属章节（只有一个）\\
+    别名、标签\\
+    \textcolor{cRed}{适用条件}\\
+    专有内容 $\rightarrow$
+  };
+  \node[box=cBlue, right=1.4cm of common.north east, anchor=north west, text width=7.0cm] (d1)
+    {\textbf{概念 / 定律}\quad 定义、核心要点、常见误解};
+  \node[box=cTeal, below=0.22cm of d1, text width=7.0cm] (d2)
+    {\textbf{物理量}\quad 符号、单位、标量或矢量};
+  \node[box=cOrange, below=0.22cm of d2, text width=7.0cm] (d3)
+    {\textbf{公式}\quad 数学表达式、变量及其含义};
+  \node[box=cPurple, below=0.22cm of d3, text width=7.0cm] (d4)
+    {\textbf{分析方法}\quad 用途、主要步骤};
+  \node[box=cGreen, below=0.22cm of d4, text width=7.0cm] (d5)
+    {\textbf{工程应用}\quad 应用场景、关键参数};
+  \coordinate (fork) at ($(common.east)+(0.7,0)$);
+  \draw[cGray, line width=0.8pt] (common.east) -- (fork);
+  \foreach \k in {1,...,5} \draw[rel] (fork) |- (d\k.west);
+\end{tikzpicture}
+\caption{知识点的内容：共有内容加各类专有内容}
+\label{fig:entity}
+\end{figure}
+
+与上次识别的内容相比，这里做了两处调整。一是定律和概念记录的内容基本相同，都是文字表述、物理意义和常见误解，所以定律直接沿用概念的结构，不再单独设计。二是「常见误解」被单独列出。例如高斯定律的一个常见误解是认为曲面外的电荷对曲面上的场强也没有影响，实际上它只是不影响穿过曲面的电通量。这类内容在教学中很有用，单独记录后，学生查询和 AI 回答时都可以用到。
+
+\begin{table}[!htbp]
+\centering
+\caption{各类知识点记录的内容}
+\label{tab:details}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{5.2cm}}
+\toprule
+\textbf{类型} & \textbf{专有内容} & \textbf{课程中的例子} \\
+\midrule
+概念 & 定义、核心要点、常见误解 & 电偶极子、电磁感应 \\
+定律或定理 & 文字表述、物理意义、常见误解 & 高斯定律、唯一性定理 \\
+物理量 & 符号、单位、标量或矢量 & 电场强度：$\mathbf{E}$，V/m，矢量 \\
+公式或方程 & 数学表达式、变量及其在公式中的含义 & 法拉第定律微分形式、波动方程 \\
+分析方法 & 用途、主要步骤 & 镜像法 \\
+工程应用 & 应用场景、关键参数 & 传输线、波导 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{公式与变量}
+
+公式是这门课的重点，记录得也最细。除了数学表达式，公式中的每个变量都单独记录符号、名称、单位，以及它在这个公式里的含义。如果某个变量对应一个已有的物理量，比如法拉第定律中的 $\mathbf{E}$ 对应「电场强度」，就把二者关联起来；像时间这类不需要单独建模的量，则不做关联。
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}
+  \node[box=cOrange, text width=6.6cm] (f) {
+    \textbf{公式}\quad 法拉第定律微分形式\\[6pt]
+    \centering $\displaystyle \nabla\times\mathbf{E} = -\frac{\partial \mathbf{B}}{\partial t}$\\[6pt]
+    \raggedright
+    \scriptsize 所属章节：时变电磁场\quad 别名：法拉第方程\\
+    \scriptsize\textcolor{cRed}{适用条件：适用于时变电磁场；介质连续}
+  };
+  \node[box=cOrange, fill=white, below=0.35cm of f, text width=6.6cm, font=\scriptsize] (vars) {
+    \textbf{变量}\\[2pt]
+    \begin{tabular}{@{}llll@{}}
+      符号 & 名称 & 单位 & 对应物理量 \\ \hline
+      $\mathbf{E}$ & 电场强度 & V/m & 电场强度 \\
+      $\mathbf{B}$ & 磁感应强度 & T & 磁感应强度 \\
+      $t$ & 时间 & s & 无 \\
+    \end{tabular}
+  };
+  \draw[cOrange, line width=0.8pt] (f) -- (vars);
+
+  \node[box=cTeal, right=1.4cm of vars.east, anchor=west, yshift=1.9cm, text width=3.6cm] (qe)
+    {\textbf{物理量}\quad 电场强度\\\scriptsize 符号 $\mathbf{E}$；单位 V/m；矢量};
+  \node[box=cTeal, right=1.4cm of vars.east, anchor=west, yshift=0.1cm, text width=3.6cm] (qb)
+    {\textbf{物理量}\quad 磁感应强度\\\scriptsize 符号 $\mathbf{B}$；单位 T；矢量};
+  \draw[rel, color=cTeal] ($(vars.east)+(0,0.05)$) to[out=0,in=180] node[rlabel, pos=0.6, above]{关联} (qe.west);
+  \draw[rel, color=cTeal] ($(vars.east)+(0,-0.3)$) to[out=0,in=180] (qb.west);
+  \node[font=\scriptsize, text=cGray, text width=3.8cm, align=left, below=0.3cm of qb]
+    {名称和单位须与物理量一致};
+\end{tikzpicture}
+\caption{公式中的变量与物理量相关联}
+\label{fig:formula}
+\end{figure}
+
+这种关联有两个用处。一是学生看公式时，点击变量就能跳到对应物理量，看到它的定义和单位。二是可以检查同一个物理量在不同公式里写得是否一致。课程中电场强度会出现在很多公式里，人工整理时很容易一处写「电场强度」、另一处写「场强」，或者单位写得不一样，有了关联就能自动发现这类问题。
+
+% ============================================================
+\section{知识关系设计}
+
+\subsection{关系类型}
+
+知识点之间的联系用知识关系表示。每条关系记录起点、终点、关系类型和一句说明。说明是必填的，因为学生看到「麦克斯韦方程组推导出波动方程」时，更想知道的是怎么推出来的、需要什么前提；问答时把这句说明一起交给模型，回答也更有依据。例如这条关系的说明是：在均匀、线性、无源介质中，麦克斯韦方程组可以推导出波动方程。
+
+关系类型共 9 种，见表~\ref{tab:relations}。其中 7 种有方向，方向由关系类型决定，例如「前置知识」总是从先学的指向后学的；另外 2 种没有方向，用于两个知识点互相等价或只是相关的情况。
+
+\begin{table}[!htbp]
+\centering
+\caption{知识关系类型}
+\label{tab:relations}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{关系} & \textbf{方向} & \textbf{课程中的例子} \\
+\midrule
+前置知识 & 先学 $\rightarrow$ 后学 & 高斯定律 $\rightarrow$ 麦克斯韦方程组 \\
+定义 & 定义者 $\rightarrow$ 被定义者 & 电场强度定义式 $\rightarrow$ 电场强度 \\
+表达为 & 定律 $\rightarrow$ 公式 & 高斯定律 $\rightarrow$ 高斯定律积分形式 \\
+推导出 & 已知 $\rightarrow$ 推导结果 & 麦克斯韦方程组 $\rightarrow$ 波动方程 \\
+使用 & 使用者 $\rightarrow$ 被使用者 & 镜像法 $\rightarrow$ 唯一性定理 \\
+描述 & 定律或公式 $\rightarrow$ 现象 & 法拉第定律 $\rightarrow$ 电磁感应 \\
+应用于 & 知识 $\rightarrow$ 应用 & 波动方程 $\rightarrow$ 均匀平面波 \\
+\midrule
+等价于 & 无方向 & 法拉第定律积分形式 — 微分形式 \\
+相关 & 无方向 & 电流连续性方程 — 位移电流 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+图~\ref{fig:graph} 是从目前整理的数据中截取的一部分，可以看到不同类型的关系如何把矢量分析、静电场、时变电磁场和电磁波几章的内容连起来。
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm]
+  \node[ent=cBlue]   (div)  at (0,3)      {散度\\\scriptsize 矢量分析};
+  \node[ent=cPurple] (gl)   at (3.7,3)    {高斯定律\\\scriptsize 静电场};
+  \node[ent=cPurple] (mx)   at (7.4,3)    {麦克斯韦方程组\\\scriptsize 时变电磁场};
+  \node[ent=cOrange] (we)   at (11.1,3)   {波动方程\\\scriptsize 电磁波};
+  \node[ent=cOrange] (glf)  at (3.7,0.8)  {高斯定律积分形式};
+  \node[ent=cOrange] (fd)   at (7.4,0.8)  {法拉第定律\\微分形式};
+  \node[ent=cGreen]  (upw)  at (11.1,0.8) {均匀平面波};
+  \node[ent=cOrange] (fi)   at (5.0,-1.4) {法拉第定律\\积分形式};
+  \node[ent=cBlue]   (emi)  at (9.8,-1.4) {电磁感应};
+  \node[ent=cOrange] (cce)  at (0,0.8)    {电流连续性方程};
+  \node[ent=cBlue]   (dc)   at (0,-1.4)   {位移电流};
+
+  \draw[rel] (div) -- node[rlabel]{前置} (gl);
+  \draw[rel] (gl)  -- node[rlabel]{前置} (mx);
+  \draw[rel] (mx)  -- node[rlabel]{推导出} (we);
+  \draw[rel] (gl)  -- node[rlabel]{表达为} (glf);
+  \draw[rel] (mx)  -- node[rlabel]{表达为} (fd);
+  \draw[rel] (we)  -- node[rlabel]{应用于} (upw);
+  \draw[rel] (fd)  -- node[rlabel]{描述} (emi);
+  \draw[rel] (div) -- node[rlabel]{前置} (cce);
+  \draw[undirected] (fi)  -- node[rlabel]{等价于} (fd);
+  \draw[undirected] (cce) -- node[rlabel]{相关} (dc);
+
+  \begin{scope}[shift={(0,-3.0)}, every node/.style={font=\scriptsize}]
+    \foreach \c/\t [count=\i] in {cBlue/概念, cTeal/物理量, cPurple/定律, cOrange/公式, cGreen/工程应用} {
+      \node[draw=\c, fill=\c!10, rounded corners=2pt, minimum width=0.5cm, minimum height=0.3cm] at (\i*1.75-1.2,0) {};
+      \node[anchor=west] at (\i*1.75-0.85,0) {\t};
+    }
+    \draw[rel] (9.0,0) -- (9.8,0); \node[anchor=west] at (9.9,0) {有方向};
+    \draw[undirected] (11.2,0) -- (12.0,0); \node[anchor=west] at (12.1,0) {无方向};
+  \end{scope}
+\end{tikzpicture}
+\caption{跨章节的知识联系示例（节点下方为所属章节）}
+\label{fig:graph}
+\end{figure}
+
+\subsection{整理关系时的几条约定}
+
+关系类型定下来以后，整理数据时还需要一些约定，否则同一种联系可能被不同的人写成不同的关系。
+
+第一，前置关系和推导关系分开记录。「A 推导出 B」通常也意味着「学 B 之前要先学 A」，但系统不会自动补上前置关系，需要的话两条都写。学习路径和推导链是两种不同的视角：学生问「学波动方程之前要会什么」时，应该得到明确的前置知识，而不是让程序去猜。
+
+第二，两种无方向的关系要少用。「等价于」只用于物理上完全等价的情况，比如同一定律的积分形式和微分形式；「相关」只在确实有联系、但不属于前置、推导、使用、应用中任何一种时才用，避免图谱里出现大量含义模糊的连线。
+
+第三，已经由其他内容表示的事实不再重复建关系。知识点属于哪一章由所属章节说明，公式里有哪些物理量由变量的关联说明，这两件事都不再另外画一条关系。同一件事只记一处，才不会出现前后矛盾。
+
+最初的设计中还有一种「包含」关系，用来表示章节包含知识点、方程组包含某个方程等。整理下来发现它的用法都能被所属章节、「表达为」和「相关」覆盖，保留它只会让人在几种关系之间犹豫，所以去掉了。
+
+% ============================================================
+\section{数据校验}
+
+\subsection{为什么需要校验}
+
+课程知识由人工整理，数量多了以后难免出错：编号重复、关系指向一个不存在的知识点、公式里的单位和物理量对不上等等。这些错误如果直到页面显示或 AI 回答时才暴露，排查会很麻烦。因此系统在启动时先对整个知识库做一遍检查，发现问题就直接报错并指出具体位置，修改后才能正常启动，如图~\ref{fig:validate} 所示。
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}[
+  step/.style = {draw=#1, fill=#1!8, rounded corners=4pt, line width=0.8pt, align=center,
+                 font=\small, minimum height=1.0cm, minimum width=2.5cm},
+  node distance=0.75cm]
+  \node[step=cBlue] (edit) {人工整理\\课程知识};
+  \node[step=cPurple, right=of edit] (load) {系统启动\\读取知识库};
+  \node[step=cOrange, diamond, aspect=1.6, minimum width=2.2cm, inner sep=1pt, right=of load] (chk) {逐项\\检查};
+  \node[step=cTeal, right=1.0cm of chk, yshift=0.9cm] (idx) {正常提供\\查询和问答};
+  \node[step=cRed, right=1.0cm of chk, yshift=-0.9cm] (err) {报错并指出位置\\暂停启动};
+  \draw[rel] (edit) -- (load);
+  \draw[rel] (load) -- (chk);
+  \draw[rel, color=cTeal] (chk.north east) |- node[rlabel, pos=0.25, left]{通过} (idx.west);
+  \draw[rel, color=cRed] (chk.south east) |- node[rlabel, pos=0.25, left]{不通过} (err.west);
+  \draw[rel, color=cRed, dashed] (err.south) -- ++(0,-0.5) -| node[rlabel, pos=0.25]{修改后重新启动} (edit.south);
+\end{tikzpicture}
+\caption{知识库的检查流程}
+\label{fig:validate}
+\end{figure}
+
+\subsection{检查哪些内容}
+
+目前共制定了 20 条检查规则，大致分为四类，见表~\ref{tab:rules}。
+
+\begin{table}[!htbp]
+\centering
+\caption{数据检查规则}
+\label{tab:rules}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{类别} & \textbf{检查内容举例} \\
+\midrule
+编号是否唯一 & 章节、知识点的编号不能重复；同一对知识点之间不能重复建立同一种关系 \\
+引用是否存在 & 知识点所属的章节必须存在；关系两端的知识点必须存在；公式变量只能关联物理量 \\
+内容是否匹配 & 知识点记录的专有内容要与它的类型对应；公式的数学表达式不能为空 \\
+取值是否一致 & 公式变量的名称、单位要与对应物理量一致；关系不能指向自己；名称和说明不能为空 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+需要说明的是，检查只能保证数据格式正确、引用完整，内容本身对不对仍要靠人工对照教材审核。最典型的是关系方向：程序无法判断到底是「A 推导出 B」还是「B 推导出 A」，方向写反了不会报错，只会让学习路径悄悄出错。所以整理关系时需要逐条确认方向。这也和上次架构设计中「人工审核后入库，大模型不直接修改正式知识数据」的原则一致。
+
+% ============================================================
+\section{后续计划}
+
+下一阶段进入样例与原型实现。先从固定教材中选择一个同时包含概念、定律、公式和应用的代表性章节，按本次设计的结构整理样例数据，检查这套结构能不能准确表达教材内容，有问题再回头修改设计。
+
+样例数据确定后，在其基础上实现搜索、知识详情、关系探索和学习路径查询，再按上次设计的检索增强流程接入课程问答：先从图谱中检索相关知识点和关系，再交给模型组织回答，并把引用的知识点一并返回。
+
+存储方面，现阶段课程知识先用一个结构化文件保存，便于人工检查和版本管理，系统启动时一次性读入。以后数据规模变大，再考虑迁移到图数据库，届时数据结构和对外接口保持不变。
+
+\end{document}
