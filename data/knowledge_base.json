@@ -419,6 +419,13 @@
             "description": "空间中的电场强度矢量。"
           },
           {
+            "symbol": "B",
+            "name": "磁感应强度",
+            "quantity_id": "magnetic-flux-density",
+            "unit": "T",
+            "description": "随时间变化的磁感应强度矢量，其变化率产生旋涡电场。"
+          },
+          {
             "symbol": "t",
             "name": "时间",
             "quantity_id": null,
