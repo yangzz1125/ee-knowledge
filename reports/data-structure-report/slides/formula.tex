@@ -1,0 +1,9 @@
+% PPT 中嵌入的公式图片：xelatex formula.tex，再用 pdftoppm -r 600 -png -singlefile formula.pdf formula 导出
+\documentclass[border=2pt]{standalone}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\definecolor{cText}{HTML}{1E293B}
+\begin{document}
+\fontsize{26}{30}\selectfont\color{cText}
+$\nabla\times\mathbf{E} = -\dfrac{\partial \mathbf{B}}{\partial t}$
+\end{document}
