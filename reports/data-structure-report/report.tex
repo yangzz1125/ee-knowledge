@@ -10,6 +10,12 @@
 \usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,shapes.geometric}
 \usepackage{caption}
 \usepackage[section]{placeins}
+% 浮动体单独成页时从页首排起，不在图表之间拉开大段空白
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{2em}
+\setlength{\@fpbot}{0pt plus 1fil}
+\makeatother
 
 % 配色与上次汇报的配图保持一致
 \definecolor{cBlue}{HTML}{1F6FEB}
@@ -64,7 +70,7 @@
 \centering
 \begin{tikzpicture}[
   stage/.style = {circle, fill=#1, text=white, font=\bfseries, minimum size=0.9cm},
-  card/.style  = {draw=#1, line width=0.8pt, rounded corners=3pt, fill=white, text width=2.85cm,
+  card/.style  = {draw=#1, line width=0.8pt, rounded corners=3pt, fill=white, text width=3.2cm,
                   align=left, font=\footnotesize, inner sep=5pt},
 ]
   \draw[cLine, line width=3pt, rounded corners] (-0.6,0) -- (14.0,0);
@@ -78,10 +84,10 @@
     \node[stage=\c] (s\i) at (\x,0) {\i};
     \ifodd\i\relax
       \node[card=\c, anchor=north] (c\i) at (\x,-0.85)
-        {\textbf{\color{\c}\t}\\[2pt]· \items\\[3pt]{\color{\c}\bfseries 产出：}\out};
+        {\textbf{\color{\c}\t}\\[2pt]· \items\\[3pt]{\color{\c}\bfseries 产出：}\\\out};
     \else
       \node[card=\c, anchor=south] (c\i) at (\x,0.85)
-        {\textbf{\color{\c}\t}\\[2pt]· \items\\[3pt]{\color{\c}\bfseries 产出：}\out};
+        {\textbf{\color{\c}\t}\\[2pt]· \items\\[3pt]{\color{\c}\bfseries 产出：}\\\out};
     \fi
     \draw[\c, line width=1pt] (s\i) -- (c\i);
   }
@@ -164,7 +170,7 @@
   \node[box=cBlue, right=1.4cm of common.north east, anchor=north west, text width=7.0cm] (d1)
     {\textbf{概念 / 定律}\quad 定义、核心要点、常见误解};
   \node[box=cTeal, below=0.22cm of d1, text width=7.0cm] (d2)
-    {\textbf{物理量}\quad 符号、单位、标量或矢量};
+    {\textbf{物理量}\quad 符号、单位、量纲、标量或矢量};
   \node[box=cOrange, below=0.22cm of d2, text width=7.0cm] (d3)
     {\textbf{公式}\quad 数学表达式、变量及其含义};
   \node[box=cPurple, below=0.22cm of d3, text width=7.0cm] (d4)
@@ -179,7 +185,7 @@
 \label{fig:entity}
 \end{figure}
 
-与上次识别的内容相比，这里做了两处调整。一是定律和概念记录的内容基本相同，都是文字表述、物理意义和常见误解，所以定律直接沿用概念的结构，不再单独设计。二是「常见误解」被单独列出。例如高斯定律的一个常见误解是认为曲面外的电荷对曲面上的场强也没有影响，实际上它只是不影响穿过曲面的电通量。这类内容在教学中很有用，单独记录后，学生查询和 AI 回答时都可以用到。
+与上次识别的内容相比，这里做了两处调整。一是定律和概念记录的内容基本相同：定律的文字表述就是它的定义，物理意义写在核心要点里，两者也都有常见误解，所以定律直接沿用概念的结构，不再单独设计。二是「常见误解」被单独列出。例如高斯定律的一个常见误解是认为曲面外的电荷对曲面上的场强也没有影响，实际上它只是不影响穿过曲面的电通量。这类内容在教学中很有用，单独记录后，学生查询和 AI 回答时都可以用到。
 
 \begin{table}[!htbp]
 \centering
@@ -191,8 +197,8 @@
 \textbf{类型} & \textbf{专有内容} & \textbf{课程中的例子} \\
 \midrule
 概念 & 定义、核心要点、常见误解 & 电偶极子、电磁感应 \\
-定律或定理 & 文字表述、物理意义、常见误解 & 高斯定律、唯一性定理 \\
-物理量 & 符号、单位、标量或矢量 & 电场强度：$\mathbf{E}$，V/m，矢量 \\
+定律或定理 & 定义、核心要点、常见误解（同概念） & 高斯定律、唯一性定理 \\
+物理量 & 符号、单位、量纲、标量或矢量 & 电场强度：$\mathbf{E}$，V/m，矢量 \\
 公式或方程 & 数学表达式、变量及其在公式中的含义 & 法拉第定律微分形式、波动方程 \\
 分析方法 & 用途、主要步骤 & 镜像法 \\
 工程应用 & 应用场景、关键参数 & 传输线、波导 \\
@@ -259,11 +265,11 @@
 \textbf{关系} & \textbf{方向} & \textbf{课程中的例子} \\
 \midrule
 前置知识 & 先学 $\rightarrow$ 后学 & 高斯定律 $\rightarrow$ 麦克斯韦方程组 \\
-定义 & 定义者 $\rightarrow$ 被定义者 & 电场强度定义式 $\rightarrow$ 电场强度 \\
+定义 & 定义者 $\rightarrow$ 被定义者 & 电偶极子 $\rightarrow$ 电偶极矩 \\
 表达为 & 定律 $\rightarrow$ 公式 & 高斯定律 $\rightarrow$ 高斯定律积分形式 \\
 推导出 & 已知 $\rightarrow$ 推导结果 & 麦克斯韦方程组 $\rightarrow$ 波动方程 \\
 使用 & 使用者 $\rightarrow$ 被使用者 & 镜像法 $\rightarrow$ 唯一性定理 \\
-描述 & 定律或公式 $\rightarrow$ 现象 & 法拉第定律 $\rightarrow$ 电磁感应 \\
+描述 & 定律或公式 $\rightarrow$ 现象或物理量 & 法拉第定律 $\rightarrow$ 电磁感应 \\
 应用于 & 知识 $\rightarrow$ 应用 & 波动方程 $\rightarrow$ 均匀平面波 \\
 \midrule
 等价于 & 无方向 & 法拉第定律积分形式 — 微分形式 \\
@@ -272,7 +278,7 @@
 \end{tabular}
 \end{table}
 
-图~\ref{fig:graph} 是从目前整理的数据中截取的一部分，可以看到不同类型的关系如何把矢量分析、静电场、时变电磁场和电磁波几章的内容连起来。
+图~\ref{fig:graph} 是从目前整理的数据中截取的一部分，可以看到不同类型的关系如何把矢量分析、静电场、恒定电流场和时变电磁场几章的内容连起来。
 
 \begin{figure}[!htbp]
 \centering
@@ -280,14 +286,14 @@
   \node[ent=cBlue]   (div)  at (0,3)      {散度\\\scriptsize 矢量分析};
   \node[ent=cPurple] (gl)   at (3.7,3)    {高斯定律\\\scriptsize 静电场};
   \node[ent=cPurple] (mx)   at (7.4,3)    {麦克斯韦方程组\\\scriptsize 时变电磁场};
-  \node[ent=cOrange] (we)   at (11.1,3)   {波动方程\\\scriptsize 电磁波};
-  \node[ent=cOrange] (glf)  at (3.7,0.8)  {高斯定律积分形式};
-  \node[ent=cOrange] (fd)   at (7.4,0.8)  {法拉第定律\\微分形式};
-  \node[ent=cGreen]  (upw)  at (11.1,0.8) {均匀平面波};
-  \node[ent=cOrange] (fi)   at (5.0,-1.4) {法拉第定律\\积分形式};
-  \node[ent=cBlue]   (emi)  at (9.8,-1.4) {电磁感应};
-  \node[ent=cOrange] (cce)  at (0,0.8)    {电流连续性方程};
-  \node[ent=cBlue]   (dc)   at (0,-1.4)   {位移电流};
+  \node[ent=cOrange] (we)   at (11.1,3)   {波动方程\\\scriptsize 时变电磁场};
+  \node[ent=cOrange] (glf)  at (3.7,0.8)  {高斯定律积分形式\\\scriptsize 静电场};
+  \node[ent=cOrange] (fd)   at (7.4,0.8)  {法拉第定律微分形式\\\scriptsize 时变电磁场};
+  \node[ent=cGreen]  (upw)  at (11.1,0.8) {均匀平面波\\\scriptsize 时变电磁场};
+  \node[ent=cOrange] (fi)   at (5.0,-1.4) {法拉第定律积分形式\\\scriptsize 时变电磁场};
+  \node[ent=cBlue]   (emi)  at (9.8,-1.4) {电磁感应\\\scriptsize 时变电磁场};
+  \node[ent=cOrange] (cce)  at (0,0.8)    {电流连续性方程\\\scriptsize 恒定电流场};
+  \node[ent=cBlue]   (dc)   at (0,-1.4)   {位移电流\\\scriptsize 时变电磁场};
 
   \draw[rel] (div) -- node[rlabel]{前置} (gl);
   \draw[rel] (gl)  -- node[rlabel]{前置} (mx);
@@ -301,7 +307,7 @@
   \draw[undirected] (cce) -- node[rlabel]{相关} (dc);
 
   \begin{scope}[shift={(0,-3.0)}, every node/.style={font=\scriptsize}]
-    \foreach \c/\t [count=\i] in {cBlue/概念, cTeal/物理量, cPurple/定律, cOrange/公式, cGreen/工程应用} {
+    \foreach \c/\t [count=\i] in {cBlue/概念, cPurple/定律, cOrange/公式, cGreen/工程应用} {
       \node[draw=\c, fill=\c!10, rounded corners=2pt, minimum width=0.5cm, minimum height=0.3cm] at (\i*1.75-1.2,0) {};
       \node[anchor=west] at (\i*1.75-0.85,0) {\t};
     }
