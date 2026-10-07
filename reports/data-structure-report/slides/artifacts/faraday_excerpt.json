@@ -1,0 +1,7 @@
+"variables": [
+  {"symbol": "E", "unit": "V/m",
+   "quantity_id": "electric-field-intensity"},
+  {"symbol": "B", "unit": "T",
+   "quantity_id": "magnetic-flux-density"},
+  {"symbol": "t", "unit": "s", "quantity_id": null}
+]

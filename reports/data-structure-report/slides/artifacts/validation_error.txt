@@ -1,0 +1,4 @@
+# 把 B 的单位故意改成 Wb，再加载知识库
+知识库校验失败：1 处错误
+  1. entities[13] (id=faraday-law-differential-form)
+     .variables[1] (B)：unit='Wb' 与物理量 'T' 不一致
