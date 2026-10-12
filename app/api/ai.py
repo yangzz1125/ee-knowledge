@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+import math
 from collections.abc import Iterator
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from ..ai import AIUnavailable, call_model, ensure_configured, stream_model
@@ -13,8 +14,25 @@ from ..dependencies import graph
 from ..domain.api import AIAnswerResponse, AIQuestionRequest
 from ..domain.results import RetrievalContext
 from ..knowledge import build_retrieval_context, cited_entity_ids
+from .ratelimit import RateLimiter, configured_limit
 
-router = APIRouter(prefix="/api/ai", tags=["AI 问答"])
+# 放在 ..ai 之后创建：导入 ..ai 时才会加载 .env，限流配置也写在那里。
+ai_limiter = RateLimiter(configured_limit())
+
+
+def _limit_requests(request: Request) -> None:
+    """按来源 IP 限流，超限时返回 429 / rate_limited，并带 Retry-After 头。"""
+    wait = ai_limiter.hit(request.client.host if request.client else "unknown")
+    if wait:
+        seconds = math.ceil(wait)
+        raise HTTPException(
+            status_code=429,
+            detail={"code": "rate_limited", "message": f"提问太频繁，请 {seconds} 秒后再试", "field": None},
+            headers={"Retry-After": str(seconds)},
+        )
+
+
+router = APIRouter(prefix="/api/ai", tags=["AI 问答"], dependencies=[Depends(_limit_requests)])
 
 _INSUFFICIENT_ANSWER = "当前知识库中没有足够内容回答这个问题。"
 _INSUFFICIENT_MESSAGE = "检索没有命中任何知识点，可以换一种说法，或直接浏览知识图谱。"
