@@ -1,7 +1,5 @@
+import { chapterColor } from "../palette.js";
 import { relationKey } from "../store.js";
-
-// 连接数最多的若干颗星常显名字，其余只在聚焦时显示，避免标签糊成一片。
-const LANDMARK_COUNT = 14;
 
 /**
  * 把接口返回的实体和关系转成力导向库要的 nodes / links。
@@ -13,24 +11,16 @@ export function buildGraphData(entities, relations, chapters, directedRelations)
     degree.set(source, (degree.get(source) || 0) + 1);
     degree.set(target, (degree.get(target) || 0) + 1);
   });
-  const landmarks = new Set(
-    [...entities]
-      .sort((a, b) => (degree.get(b.id) || 0) - (degree.get(a.id) || 0))
-      .slice(0, LANDMARK_COUNT)
-      .map(entity => entity.id),
-  );
   const chapterOrder = new Map(chapters.map(chapter => [chapter.id, chapter.order]));
-  const chapterOfEntity = new Map(entities.map(entity => [entity.id, entity.chapter_id]));
 
   const nodes = entities.map(entity => ({
     id: entity.id,
     name: entity.name,
     type: entity.type,
-    summary: entity.summary,
-    chapterId: entity.chapter_id,
-    chapterOrder: chapterOrder.get(entity.chapter_id),
-    landmark: landmarks.has(entity.id),
-    radius: 2.2 + Math.sqrt(degree.get(entity.id) || 0) * 1.25,
+    color: chapterColor(chapterOrder.get(entity.chapter_id)),
+    degree: degree.get(entity.id) || 0,
+    // 半径按关联数的平方根增长：关键节点明显更大，又不会大到压住邻居。
+    radius: 2 + Math.sqrt(degree.get(entity.id) || 0) * 1.8,
   }));
   const links = relations.map(relation => ({
     key: relationKey(relation),
@@ -38,7 +28,6 @@ export function buildGraphData(entities, relations, chapters, directedRelations)
     target: relation.target_id,
     type: relation.type,
     directed: directedRelations.has(relation.type),
-    sameChapter: chapterOfEntity.get(relation.source_id) === chapterOfEntity.get(relation.target_id),
   }));
   return { nodes, links };
 }
@@ -62,11 +51,12 @@ export function buildAdjacency(relations) {
 }
 
 /**
- * 根据当前状态决定每颗星、每条线的亮度：lit 点亮、normal 常态、dim 变暗。
- * 优先级：悬停 > 学习路径 > 选中 > AI 回答引用；都没有时按章节和类型筛选变暗。
+ * 根据当前状态决定每个节点、每条线的亮度：lit 点亮、normal 常态、dim 变暗。
+ * 优先级：悬停 > 学习路径 > 选中 > AI 回答引用；都没有时按类型筛选变暗。
+ * 章节不在这里处理：章节视图直接换掉图上的节点，见 graph2d.js 的 setView。
  */
 export function computeEmphasis(state, adjacency) {
-  const { hoverId, path, selectedId, citedIds, chapterId, entityType } = state;
+  const { hoverId, path, selectedId, citedIds, entityType } = state;
   let nodes = null;
   let links = null;
 
@@ -84,9 +74,8 @@ export function computeEmphasis(state, adjacency) {
     links = new Set();
   }
 
-  const filtered = Boolean(chapterId || entityType);
-  const inFilter = node => (!chapterId || node.chapterId === chapterId)
-    && (!entityType || node.type === entityType);
+  const filtered = Boolean(entityType);
+  const inFilter = node => !entityType || node.type === entityType;
 
   const level = node => {
     if (nodes) return nodes.has(node.id) ? "lit" : "dim";
@@ -102,13 +91,10 @@ export function computeEmphasis(state, adjacency) {
   return {
     level,
     linkLevel,
+    filtered,
+    // 点亮的连线取这个节点的颜色；学习路径和 AI 引用没有中心节点。
+    centerId: hoverId || (path ? null : selectedId),
     selectedId,
-    pathIds: path?.ids || null,
     pathEnds: path ? new Set([path.ids[0], path.ids.at(-1)]) : new Set(),
-    showLabel(node) {
-      const value = level(node);
-      if (value === "lit") return true;
-      return value === "normal" && (node.landmark || filtered);
-    },
   };
 }

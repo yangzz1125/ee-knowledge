@@ -4,18 +4,14 @@ import { loadApplicationData } from "./api.js";
 import ChapterPanel from "./components/ChapterPanel.vue";
 import ChatDock from "./components/ChatDock.vue";
 import EntityCard from "./components/EntityCard.vue";
-import GalaxyCanvas from "./components/GalaxyCanvas.vue";
+import GraphCanvas from "./components/GraphCanvas.vue";
 import PathPanel from "./components/PathPanel.vue";
 import SearchBox from "./components/SearchBox.vue";
-import { clearSelection, loadInto, resetView, setMode, store } from "./store.js";
+import { clearSelection, loadInto, resetView, store } from "./store.js";
 
-const galaxy = ref(null);
+const graph = ref(null);
 const chat = ref(null);
 const navOpen = ref(false);
-
-const hint = computed(() => (store.mode === "3d"
-  ? "左键拖动旋转 · 右键平移 · 滚轮缩放 · 点击星体查看详情"
-  : "拖动平移 · 滚轮缩放 · 点击星体查看详情"));
 
 const focusTitle = computed(() => {
   if (store.path) return store.path.title;
@@ -31,7 +27,7 @@ function openPanel(name) {
 
 function backToOverview() {
   resetView();
-  galaxy.value?.fitAll();
+  graph.value?.fitAll();
 }
 
 function askAbout(entity) {
@@ -64,11 +60,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 
 <template>
   <div class="app">
-    <GalaxyCanvas v-if="store.status === 'online'" ref="galaxy" />
-    <div v-else class="galaxy-placeholder">
+    <GraphCanvas v-if="store.status === 'online'" ref="graph" />
+    <div v-else class="graph-placeholder">
       <div v-if="store.status === 'loading'" class="boot">
         <span class="boot-orb"></span>
-        <p>正在点亮知识星图…</p>
+        <p>正在加载知识图谱…</p>
       </div>
       <div v-else class="boot">
         <strong>无法连接知识库</strong>
@@ -87,7 +83,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
         </svg>
         <div>
           <strong>场域</strong>
-          <span>{{ store.course || "电磁场与波" }}知识星图</span>
+          <span>{{ store.course || "电磁场与波" }}知识图谱</span>
         </div>
       </div>
       <SearchBox v-if="store.status === 'online'" />
@@ -98,13 +94,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="18" r="2.2" /><circle cx="19" cy="6" r="2.2" /><path d="M7 17c6-1 4-9 10-10" /></svg>
           <span class="pill-label">学习路径</span>
         </button>
-        <div class="segmented" role="group" aria-label="星图维度">
-          <button type="button" :class="{ active: store.mode === '3d' }" :aria-pressed="store.mode === '3d'" @click="setMode('3d')">3D</button>
-          <button type="button" :class="{ active: store.mode === '2d' }" :aria-pressed="store.mode === '2d'" @click="setMode('2d')">2D</button>
-        </div>
         <span class="status" :class="store.status" role="status">
           <span class="status-dot"></span>
-          {{ store.status === "online" ? `${store.counts.entities} 颗知识星 · ${store.counts.relations} 条关系`
+          {{ store.status === "online" ? `${store.counts.entities} 个知识点 · ${store.counts.relations} 条关系`
             : store.status === "loading" ? "连接中" : "后端未连接" }}
         </span>
       </div>
@@ -130,7 +122,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
       <div class="drawer-body">
         <EntityCard v-if="store.panel === 'detail'" @ask="askAbout"
                     @path-start="id => setPathEnd('pathStartId', id)" @path-end="id => setPathEnd('pathEndId', id)" />
-        <PathPanel v-else @tour="ids => galaxy?.tour(ids)" />
+        <PathPanel v-else @tour="ids => graph?.tour(ids)" />
       </div>
     </aside>
 
@@ -138,7 +130,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
       <button type="button" class="round-button" title="回到全景" aria-label="回到全景" @click="backToOverview">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" /></svg>
       </button>
-      <p class="hint">{{ hint }}</p>
+      <p class="hint">拖动画布平移 · 拖动节点 · 滚轮缩放 · 点击节点查看详情</p>
     </div>
 
     <ChatDock v-if="store.status === 'online'" ref="chat" />

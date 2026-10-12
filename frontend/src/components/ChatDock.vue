@@ -2,8 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { streamAnswer } from "../api.js";
 import { renderMarkdown } from "../lib/markdown.js";
-import { TYPE_COLORS } from "../palette.js";
-import { entityName, notify, selectEntity, showCitations, store } from "../store.js";
+import { entityColor, entityName, notify, selectEntity, showCitations, store } from "../store.js";
 
 const HISTORY_KEY = "ee-conversation-history-v1";
 const EXAMPLES = ["高斯定律为什么需要闭合曲面？", "电位和电场强度是什么关系？", "麦克斯韦方程组包含哪几条定律？"];
@@ -88,7 +87,7 @@ async function ask(text) {
     if (!answer.error && answer.text) {
       history = [...history, { question: value, answer: answer.text.slice(0, 4000), used_entity_ids: references }].slice(-10);
       saveHistory();
-      // 用户正在看某个知识点或路径时不打断，引用可以点「在星图中点亮」再看。
+      // 用户正在看某个知识点或路径时不打断，引用可以点「在图谱中点亮」再看。
       if (references.length && !store.selectedId && !store.path) showCitations(references);
     }
   } catch (error) {
@@ -152,7 +151,7 @@ defineExpose({
     <div v-if="expanded" class="chat-panel glass-strong">
       <header class="chat-head">
         <span class="chat-title"><span class="spark"></span>AI 课程助教</span>
-        <span class="chat-context">{{ contextName ? `围绕「${contextName}」回答` : "只依据知识星图作答" }}</span>
+        <span class="chat-context">{{ contextName ? `围绕「${contextName}」回答` : "只依据知识图谱作答" }}</span>
         <button v-if="messages.length" type="button" class="text-button" @click="clear">清空</button>
         <button type="button" class="icon-button" aria-label="收起对话" title="收起" @click="expanded = false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
@@ -161,7 +160,7 @@ defineExpose({
       <div ref="list" class="chat-list" aria-live="polite">
         <div v-if="!messages.length" class="chat-welcome">
           <strong>从一个问题开始</strong>
-          <p>回答只依据课程知识图谱，引用到的知识点会在星图里亮起来。</p>
+          <p>回答只依据课程知识图谱，引用到的知识点会在图谱里高亮。</p>
           <div class="examples">
             <button v-for="example in EXAMPLES" :key="example" type="button" @click="ask(example)">{{ example }}</button>
           </div>
@@ -170,16 +169,16 @@ defineExpose({
           <p v-if="message.role === 'user'" class="bubble user">{{ message.text }}</p>
           <div v-else class="bubble assistant" :class="{ error: message.error }">
             <p v-if="message.error">{{ message.error }}</p>
-            <p v-else-if="!message.text" class="thinking"><span></span><span></span><span></span>正在检索知识星图</p>
+            <p v-else-if="!message.text" class="thinking"><span></span><span></span><span></span>正在检索知识图谱</p>
             <div v-else-if="!message.done" class="streaming">{{ message.text }}</div>
             <div v-else :ref="element => renderTarget(element, message)" class="markdown"></div>
             <div v-if="message.done && message.ids?.length" class="citations">
               <span>依据</span>
               <button v-for="id in message.ids" :key="id" type="button" class="neighbor"
-                      :style="{ '--c': TYPE_COLORS[store.entitiesById.get(id)?.type] }" @click="selectEntity(id)">
+                      :style="{ '--c': entityColor(id) }" @click="selectEntity(id)">
                 <span class="dot"></span>{{ entityName(id) }}
               </button>
-              <button type="button" class="text-button" @click="showCitations(message.ids)">在星图中点亮</button>
+              <button type="button" class="text-button" @click="showCitations(message.ids)">在图谱中高亮</button>
             </div>
           </div>
         </template>

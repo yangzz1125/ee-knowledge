@@ -1,7 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import { TYPE_COLORS } from "../palette.js";
-import { chapterOf, entityName, store } from "../store.js";
+import { chapterOf, entityColor, entityName, store } from "../store.js";
 
 // v-model 绑定实体 ID；输入框里只是名字，必须从候选里选中才算数。
 const model = defineModel({ type: String, default: null });
@@ -58,7 +57,7 @@ function onKeydown(event) {
       <p v-if="!matches.length" class="search-empty">没有匹配的知识点</p>
       <button v-for="(entity, index) in matches" :key="entity.id" type="button" class="picker-option"
               :class="{ active: index === active }" @mouseenter="active = index" @click="choose(entity)">
-        <span class="dot" :style="{ '--c': TYPE_COLORS[entity.type] }"></span>
+        <span class="dot" :style="{ '--c': entityColor(entity.id) }"></span>
         {{ entity.name }}<small>{{ chapterOf(entity.chapter_id)?.name }}</small>
       </button>
     </div>

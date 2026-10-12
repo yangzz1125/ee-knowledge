@@ -13,12 +13,7 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // three.js 和 3D 图谱库单独成块，压缩前约 1.4 MB（gzip 后约 370 KB），属于预期体积。
-    chunkSizeWarningLimit: 1500,
-    rolldownOptions: {
-      output: {
-        manualChunks: id => (id.includes("node_modules/three") ? "three" : undefined),
-      },
-    },
+    // 只有一个入口包，压缩前约 610 KB（gzip 后约 200 KB），主要是 KaTeX、force-graph 和 Vue，属于预期体积。
+    chunkSizeWarningLimit: 700,
   },
 });

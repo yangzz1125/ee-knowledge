@@ -1,9 +1,8 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { buildAdjacency, buildGraphData, computeEmphasis } from "../graph/model.js";
-import { createGalaxy2D } from "../graph/galaxy2d.js";
-import { createGalaxy3D } from "../graph/galaxy3d.js";
-import { chapterOf, clearSelection, selectEntity, store } from "../store.js";
+import { createGraph2D } from "../graph/graph2d.js";
+import { chapterView, clearSelection, selectEntity, store } from "../store.js";
 
 const host = ref(null);
 const hoverId = ref(null);
@@ -12,28 +11,18 @@ let adjacency = null;
 let resizeObserver = null;
 let tourTimers = [];
 
-const escapeHtml = text => text.replace(/[&<>"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char]);
-
-function describe(node) {
-  return `<div class="star-tip"><strong>${escapeHtml(node.name)}</strong>`
-    + `<span>${escapeHtml(store.typeLabels[node.type] || node.type)} · ${escapeHtml(chapterOf(node.chapterId)?.name || "")}</span>`
-    + `<p>${escapeHtml(node.summary)}</p></div>`;
-}
-
 function emphasis() {
   return computeEmphasis({
     hoverId: hoverId.value,
     path: store.path,
     selectedId: store.selectedId,
     citedIds: store.citedIds,
-    chapterId: store.chapterId,
     entityType: store.entityType,
   }, adjacency);
 }
 
 function mount() {
-  const create = store.mode === "3d" ? createGalaxy3D : createGalaxy2D;
-  renderer = create(host.value, store.chapters, {
+  renderer = createGraph2D(host.value, {
     onSelect: id => {
       stopTour();
       selectEntity(id);
@@ -44,7 +33,6 @@ function mount() {
     },
     onHover: id => { hoverId.value = id; },
     onLayoutReady: refocus,
-    describe,
   });
   const { width, height } = host.value.getBoundingClientRect();
   renderer.resize(width, height);
@@ -63,7 +51,7 @@ function stopTour() {
   tourTimers = [];
 }
 
-/** 镜头沿学习路径逐颗飞过，最后退回能看到整条路径的位置。 */
+/** 镜头沿学习路径逐个经过各个知识点，最后退回能看到整条路径的位置。 */
 function tour(ids) {
   stopTour();
   renderer?.setInsets(overlayInsets());
@@ -87,13 +75,8 @@ onBeforeUnmount(() => {
   unmount();
 });
 
-watch(() => store.mode, () => {
-  unmount();
-  mount();
-});
-
 watch(
-  () => [hoverId.value, store.path, store.selectedId, store.citedIds, store.chapterId, store.entityType],
+  () => [hoverId.value, store.path, store.selectedId, store.citedIds, store.entityType],
   () => renderer?.applyStyle(emphasis()),
 );
 
@@ -121,15 +104,15 @@ function overlayInsets() {
 }
 
 /**
- * 镜头对准当前焦点：路径 > 选中的星和它的邻居 > 聚焦的章节 > AI 引用 > 全景。
- * 切换 2D/3D 后布局完成时也调用一次，保持切换前的焦点。
+ * 镜头对准当前焦点：路径 > 选中的知识点和它的邻居 > 章节视图 > AI 引用 > 全景。
+ * 首次布局完成、切换章节视图后布局成形时也调用，按当时的焦点对准镜头。
  */
 function refocus() {
   if (!renderer) return;
   renderer.setInsets(overlayInsets());
   if (store.path) renderer.fitNodes(store.path.ids);
   else if (store.selectedId) renderer.fitNodes([store.selectedId, ...(adjacency.neighbors.get(store.selectedId) || [])]);
-  else if (store.chapterId) renderer.fitNodes(store.entities.filter(entity => entity.chapter_id === store.chapterId).map(entity => entity.id));
+  else if (store.chapterId) renderer.fitAll();
   else if (store.citedIds.length) renderer.fitNodes(store.citedIds);
   else renderer.fitAll();
 }
@@ -138,7 +121,8 @@ function refocus() {
 watch(() => store.selectedId, id => { if (id) refocus(); }, { flush: "post" });
 watch(() => store.path, path => { if (path) refocus(); }, { flush: "post" });
 watch(() => store.citedIds, ids => { if (ids.length) refocus(); }, { flush: "post" });
-watch(() => store.chapterId, refocus, { flush: "post" });
+// 章节视图换掉图上的节点并重新排布，布局成形后渲染器回调 refocus。
+watch(() => store.chapterId, id => renderer?.setView(id ? chapterView(id) : null));
 
 defineExpose({
   fitAll: () => {
@@ -151,6 +135,6 @@ defineExpose({
 </script>
 
 <template>
-  <div ref="host" class="galaxy" :class="`galaxy-${store.mode}`" role="img"
-       :aria-label="`${store.course}知识星图，${store.entities.length} 个知识点`"></div>
+  <div ref="host" class="graph-canvas" role="img"
+       :aria-label="`${store.course}知识图谱，${store.entities.length} 个知识点`"></div>
 </template>

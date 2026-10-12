@@ -2,8 +2,8 @@
 import { computed, ref, watch } from "vue";
 import { loadNeighbors } from "../api.js";
 import { formulaHtml } from "../lib/math.js";
-import { TYPE_COLORS, VALUE_KIND_LABELS } from "../palette.js";
-import { chapterOf, selectEntity, store } from "../store.js";
+import { VALUE_KIND_LABELS } from "../palette.js";
+import { chapterOf, enterChapterOf, entityColor, selectEntity, store } from "../store.js";
 
 const emit = defineEmits(["ask", "path-start", "path-end"]);
 
@@ -43,7 +43,7 @@ watch(() => store.selectedId, async id => {
 </script>
 
 <template>
-  <article v-if="entity" class="entity-card" :style="{ '--c': TYPE_COLORS[entity.type] }">
+  <article v-if="entity" class="entity-card" :style="{ '--c': entityColor(entity.id) }">
     <header class="entity-head">
       <p class="entity-kind">
         <span class="dot"></span>{{ store.typeLabels[entity.type] }}
@@ -121,7 +121,7 @@ watch(() => store.selectedId, async id => {
         <h3>{{ group.title }}<small v-if="group.hint">{{ group.hint }}</small></h3>
         <div class="neighbor-list">
           <button v-for="item in group.items" :key="item.relation.source_id + item.relation.target_id + item.relation.type"
-                  type="button" class="neighbor" :style="{ '--c': TYPE_COLORS[item.entity.type] }"
+                  type="button" class="neighbor" :style="{ '--c': entityColor(item.entity.id) }"
                   :title="item.relation.description" @click="selectEntity(item.entity.id)">
             <span class="dot"></span>{{ item.entity.name }}
             <small v-if="group.title === '其他关联'">{{ ARROWS[item.direction] }} {{ store.relationLabels[item.relation.type] }}</small>
@@ -134,6 +134,8 @@ watch(() => store.selectedId, async id => {
       <button type="button" class="primary-button" @click="emit('ask', entity)">问 AI 助教</button>
       <button type="button" class="ghost-button" @click="emit('path-start', entity.id)">设为路径起点</button>
       <button type="button" class="ghost-button" @click="emit('path-end', entity.id)">设为路径终点</button>
+      <button v-if="store.chapterId && entity.chapter_id !== store.chapterId" type="button" class="ghost-button wide"
+              @click="enterChapterOf(entity.id)">转到第{{ chapterOf(entity.chapter_id).order }}章　{{ chapterOf(entity.chapter_id).name }}</button>
     </footer>
   </article>
 </template>

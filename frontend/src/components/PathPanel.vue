@@ -1,8 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { findPath } from "../api.js";
-import { TYPE_COLORS } from "../palette.js";
-import { notify, selectEntity, showPath, store } from "../store.js";
+import { entityColor, notify, selectEntity, showPath, store } from "../store.js";
 import EntityPicker from "./EntityPicker.vue";
 
 const emit = defineEmits(["tour"]);
@@ -75,7 +74,7 @@ const isReversed = (relation, entity) => relation.source_id !== entity.id;
         <ol class="path-steps">
           <template v-for="(entity, index) in result.entities" :key="entity.id">
             <li class="path-node">
-              <button type="button" class="path-entity" :style="{ '--c': TYPE_COLORS[entity.type] }"
+              <button type="button" class="path-entity" :style="{ '--c': entityColor(entity.id) }"
                       @click="selectEntity(entity.id)">
                 <span class="step-index">{{ index + 1 }}</span>
                 <span class="dot"></span>{{ entity.name }}

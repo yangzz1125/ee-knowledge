@@ -1,8 +1,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { searchEntities } from "../api.js";
-import { TYPE_COLORS } from "../palette.js";
-import { notify, selectEntity, store } from "../store.js";
+import { entityColor, notify, selectEntity, store } from "../store.js";
 
 const LIMIT = 10;
 const input = ref(null);
@@ -85,7 +84,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onGlobalKey));
       <button v-for="(entity, index) in results" :key="entity.id" type="button" class="search-result"
               :class="{ active: index === active }" role="option" :aria-selected="index === active"
               @mouseenter="active = index" @click="choose(entity)">
-        <span class="dot" :style="{ '--c': TYPE_COLORS[entity.type] }"></span>
+        <span class="dot" :style="{ '--c': entityColor(entity.id) }"></span>
         <strong>{{ entity.name }}</strong>
         <small>{{ store.typeLabels[entity.type] }}</small>
         <span class="result-summary">{{ entity.summary }}</span>

@@ -44,25 +44,23 @@ frontend/                Vue 3 + Vite，构建产物在 dist/（不入库）
 ├── index.html           页面入口
 ├── vite.config.js       开发代理 /api → 8000；构建输出 dist/
 └── src/
-    ├── App.vue          页面骨架：顶栏、浮层面板、星图
+    ├── App.vue          页面骨架：顶栏、浮层面板、图谱
     ├── store.js         全页共享状态与操作（选中、聚焦、路径、AI 引用）
     ├── api.js           后端请求与 SSE 解析
-    ├── palette.js       星体类型色与章节星云色
+    ├── palette.js       章节颜色（节点和界面都按章节取色）
     ├── graph/
     │   ├── model.js     实体/关系 → 节点/连线，高亮规则
-    │   ├── forces.js    章节星团的锚点与聚拢力
-    │   ├── galaxy3d.js  3D 星系（3d-force-graph / three.js）
-    │   └── galaxy2d.js  2D 平面星图（force-graph），接口与 3D 相同
+    │   └── graph2d.js   图谱渲染（force-graph），Obsidian 式交互
     ├── components/
-    │   ├── GalaxyCanvas.vue  挂载 2D/3D 渲染器，镜头对焦
+    │   ├── GraphCanvas.vue   挂载图谱渲染器，镜头对焦
     │   ├── SearchBox.vue     搜索与键盘选择
-    │   ├── ChapterPanel.vue  章节星团与类型筛选
+    │   ├── ChapterPanel.vue  章节与类型筛选
     │   ├── EntityCard.vue    知识点详情、公式、邻居
     │   ├── PathPanel.vue     学习路径查询与沿路径飞行
     │   ├── EntityPicker.vue  路径起终点选择框
     │   └── ChatDock.vue      底部 AI 问答、流式回答与页面内历史
     ├── lib/             Markdown 安全渲染、KaTeX 公式渲染
-    └── styles/main.css  深色星空与玻璃浮层的视觉样式
+    └── styles/main.css  纸面配色与浮层样式
 tests/
 ├── test_api.py          接口自检
 └── rag_eval.py          检索与引用识别评测
@@ -159,7 +157,7 @@ POST /api/ai/ask/stream  通过 SSE 流式返回回答
 - [x] MVP 章节骨架：6 章节
 - [x] 扩充草稿数据：77 实体 / 110 关系（其中 40 条跨章节），覆盖 6 章、全部 6 种实体类型和 9 种关系类型（待人工审核）
 - [ ] 按 6 个章节扩充课程知识数据
-- [x] 3D 知识星图前端（Vue 3 + Vite）：3D/2D 切换、章节星团、搜索、详情、邻居、SSE 问答和页面内历史
+- [x] 知识图谱前端（Vue 3 + Vite）：Obsidian 式关系图谱、按章节上色、搜索、详情、邻居、SSE 问答和页面内历史
 - [x] 路径探索：图上点亮路径，镜头可沿路径飞行
 - [x] DeepSeek AI 客户端（OpenAI Responses 协议）
 - [x] 当前页面内最多 10 轮连续问答
