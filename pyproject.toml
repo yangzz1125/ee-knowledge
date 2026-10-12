@@ -1,7 +1,7 @@
 [project]
 name = "ai-ee-knowledge"
 version = "0.1.0"
-description = "Add your description here"
+description = "电磁场与波 AI 知识图谱：知识搜索、关系探索、学习路径和基于图谱的 AI 问答"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

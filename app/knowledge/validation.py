@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from ..domain.entities import FormulaEntity, KnowledgeBase, QuantityEntity
 from ..domain.types import ENTITY_TYPE_ORDER, SUPPORTED_SCHEMA_VERSIONS
@@ -58,7 +58,11 @@ def validate_knowledge_base(kb: KnowledgeBase) -> list[str]:
             f"schema_version={kb.schema_version!r} 不受支持，当前支持：{supported}"
         )
 
-    # 规则 2、18、19：章节 ID、顺序、层级和名称。
+    # 规则 13、17：所有文字字段（含数组元素、details 和公式变量）去掉空白后不能为空。
+    for section in ("chapters", "entities", "relations"):
+        errors.extend(_blank_strings(getattr(kb, section), section))
+
+    # 规则 2、18、20：章节 ID、顺序和层级。
     chapter_ids: set[str] = set()
     orders: set[int] = set()
     for index, chapter in enumerate(kb.chapters):
@@ -75,10 +79,8 @@ def validate_knowledge_base(kb: KnowledgeBase) -> list[str]:
             errors.append(
                 f"{where}：当前阶段 parent_id 必须为 null，实际 {chapter.parent_id!r}"
             )
-        if not chapter.name.strip():
-            errors.append(f"{where}：name 不能为空")
 
-    # 规则 3、5、17：实体 ID、章节引用和必填文字。
+    # 规则 3、5：实体 ID 和章节引用。
     entity_ids: set[str] = set()
     for index, entity in enumerate(kb.entities):
         where = f"entities[{index}] (id={entity.id})"
@@ -89,13 +91,10 @@ def validate_knowledge_base(kb: KnowledgeBase) -> list[str]:
             errors.append(
                 f"{where}：chapter_id={entity.chapter_id!r} 指向不存在的章节"
             )
-        for field_name in ("name", "summary"):
-            if not getattr(entity, field_name).strip():
-                errors.append(f"{where}：{field_name} 不能为空")
 
     by_id = {entity.id: entity for entity in kb.entities}
 
-    # 规则 4、6、15、17：关系引用、自环、重复和描述。
+    # 规则 4、6、15：关系引用、自环和重复。
     seen_relations: set[tuple[str, str, str]] = set()
     for index, relation in enumerate(kb.relations):
         where = (
@@ -112,16 +111,12 @@ def validate_knowledge_base(kb: KnowledgeBase) -> list[str]:
         if key in seen_relations:
             errors.append(f"{where}：与前面某条关系的起点、终点、类型完全相同")
         seen_relations.add(key)
-        if not relation.description.strip():
-            errors.append(f"{where}：description 不能为空")
 
-    # 规则 7、13、14：公式内容和变量引用。
+    # 规则 7、14：公式变量引用的物理量。
     for index, entity in enumerate(kb.entities):
         if not isinstance(entity, FormulaEntity):
             continue
         where = f"entities[{index}] (id={entity.id})"
-        if not entity.details.latex.strip():
-            errors.append(f"{where}：details.latex 不能为空")
         for variable_index, variable in enumerate(entity.details.variables):
             variable_where = f"{where}.variables[{variable_index}] ({variable.symbol})"
             if variable.quantity_id is None:
@@ -145,3 +140,30 @@ def validate_knowledge_base(kb: KnowledgeBase) -> list[str]:
                 )
 
     return errors
+
+
+def _blank_strings(items: list[BaseModel], section: str) -> list[str]:
+    """列出对象中所有去掉空白后为空的字符串，位置写成 entities[3] (id=xxx).details.steps[1]。"""
+    problems: list[str] = []
+
+    def walk(value: object, where: str) -> None:
+        if isinstance(value, str):
+            if not value.strip():
+                problems.append(f"{where}：不能为空")
+        elif isinstance(value, dict):
+            for key, item in value.items():
+                walk(item, f"{where}.{key}")
+        elif isinstance(value, list):
+            for index, item in enumerate(value):
+                walk(item, f"{where}[{index}]")
+
+    for index, item in enumerate(items):
+        data = item.model_dump()
+        label = (
+            f"id={data['id']}"
+            if "id" in data
+            else f"{data['source_id']} --{data['type']}--> {data['target_id']}"
+        )
+        for key, value in data.items():
+            walk(value, f"{section}[{index}] ({label}).{key}")
+    return problems

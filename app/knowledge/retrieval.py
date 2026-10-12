@@ -28,7 +28,8 @@ MIN_SCORE = 2.0
 NAME_BONUS = 6.0
 PREREQUISITE_DEPTH = 3
 #: 问题里出现这些指代词，说明在追问上文，优先沿用页面实体和历史实体。
-_ANAPHORA = ("它", "这个", "那个", "该", "上面", "上述", "刚才", "前面", "这些", "那些")
+#: 「应该」「其它」里的「该」「它」不是指代。
+_ANAPHORA = re.compile(r"(?<!其)它|(?<!应)该|这个|那个|上面|上述|刚才|前面|这些|那些")
 _ORDER_HINTS = ("先学", "前置", "之前", "基础", "顺序", "路线", "路径", "先修", "先掌握", "学习")
 
 # 字段权重：名称和别名最重要，简介和定义提供描述性词汇。
@@ -185,7 +186,7 @@ def build_retrieval_context(
     history = history or []
     matched = search_entities(graph, question)
     carried = _carried_hits(graph, context_entity_id, history)
-    if any(word in question for word in _ANAPHORA):
+    if _ANAPHORA.search(question):
         # 追问：上文的知识点排在前面，问题本身检索到的补在后面。
         seen = {hit.entity.id for hit in carried}
         matched = (carried + [hit for hit in matched if hit.entity.id not in seen])[:TOP_K]

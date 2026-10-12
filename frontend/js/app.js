@@ -268,6 +268,8 @@ async function selectEntity(entityId) {
   drawGraph(state.visibleGraph);
   try {
     const localGraph = await loadLocalGraph(entityId, 2);
+    // 连续点击时，先发出的请求可能后返回，不能覆盖后选中的实体。
+    if (state.selectedId !== entityId) return;
     state.localMode = true;
     drawGraph(localGraph);
   } catch (error) {
@@ -275,13 +277,16 @@ async function selectEntity(entityId) {
   }
 }
 
+const SEARCH_LIMIT = 12;
+
+/** results 最多比 SEARCH_LIMIT 多一条，多出来说明结果被截断了。 */
 function renderSearchResults(results) {
   const container = $("#searchResults");
   container.textContent = "";
   if (!results.length) {
     container.append(el("div", "search-result", "没有找到相关知识点"));
   }
-  results.forEach(result => {
+  results.slice(0, SEARCH_LIMIT).forEach(result => {
     const entity = result.entity;
     const button = el("button", "search-result");
     button.type = "button";
@@ -297,6 +302,9 @@ function renderSearchResults(results) {
     });
     container.append(button);
   });
+  if (results.length > SEARCH_LIMIT) {
+    container.append(el("div", "search-result search-more", `只显示前 ${SEARCH_LIMIT} 条，输入更具体的关键词可以缩小范围`));
+  }
   container.hidden = false;
 }
 
@@ -310,7 +318,10 @@ function initializeSearch() {
       return;
     }
     try {
-      renderSearchResults(await searchEntities(keyword));
+      const results = await searchEntities(keyword, SEARCH_LIMIT + 1);
+      // 输入已经变了，这是过期的结果。
+      if (input.value.trim() !== keyword) return;
+      renderSearchResults(results);
     } catch (error) {
       notify(error.message);
     }
@@ -613,7 +624,7 @@ async function start() {
     $("#graphEmpty").hidden = false;
     $("#knowledgeGraph").hidden = true;
     $("#graphEmpty strong").textContent = "无法连接知识库";
-    $("#graphEmpty span").textContent = "请确认 FastAPI 正在 127.0.0.1:8000 运行。";
+    $("#graphEmpty span").textContent = "请确认后端服务正在运行，然后刷新页面。";
     notify(error.message);
   }
 }

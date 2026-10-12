@@ -180,6 +180,7 @@ button.search-result:hover { background: var(--accent-soft); }
 .search-result:last-child { border-bottom: 0; }
 .search-result small { color: var(--ink-3); }
 .search-result .result-summary { grid-column: 1 / -1; color: var(--ink-2); }
+.search-more { color: var(--ink-3); font-size: 12px; }
 
 /* ---------- 左栏 ---------- */
 .rail {

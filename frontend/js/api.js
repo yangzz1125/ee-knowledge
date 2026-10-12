@@ -1,4 +1,5 @@
-const API_BASE = "http://127.0.0.1:8000/api";
+// 页面由后端同源提供（部署时由反向代理把 /api 转给后端），所以用相对路径。
+const API_BASE = "/api";
 
 async function request(path, options) {
   const response = await fetch(`${API_BASE}${path}`, options);
@@ -24,8 +25,8 @@ export async function loadApplicationData() {
   return { health, meta, chapters, graph };
 }
 
-export const searchEntities = keyword =>
-  getJson(`/entities?${new URLSearchParams({ keyword, limit: "12" })}`);
+export const searchEntities = (keyword, limit) =>
+  getJson(`/entities?${new URLSearchParams({ keyword, limit })}`);
 
 export const loadNeighbors = entityId =>
   getJson(`/entities/${encodeURIComponent(entityId)}/neighbors`);

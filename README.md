@@ -18,7 +18,7 @@
 
 ```text
 app/
-├── main.py              创建应用、注册中间件和路由
+├── main.py              创建应用、注册路由、挂载前端静态文件
 ├── dependencies.py      加载并提供共享知识图实例
 ├── ai/
 │   └── client.py        DeepSeek Responses API 客户端
@@ -38,10 +38,12 @@ app/
     ├── loader.py        JSON 读取和加载
     ├── validation.py    知识库业务校验
     ├── graph.py         搜索、邻居、路径和图谱算法
-    └── retrieval.py     AI 问答检索上下文
+    ├── retrieval.py     AI 问答检索上下文（BM25）
+    └── citations.py     识别回答实际引用的知识点
 frontend/
 ├── index.html           Apple 风格应用界面
 ├── styles.css           视觉系统与响应式布局
+├── vendor/              本地第三方库：KaTeX 0.16.11、marked 12.0.2、DOMPurify 3.1.6
 └── js/
     ├── api.js           后端请求与 SSE 解析
     ├── graph.js         SVG 知识图谱：力导向布局、缩放平移
@@ -49,7 +51,9 @@ frontend/
     ├── markdown.js      Markdown 安全渲染
     ├── math.js          KaTeX 公式渲染
     └── app.js           页面状态和交互装配
-tests/test_api.py        接口自检
+tests/
+├── test_api.py          接口自检
+└── rag_eval.py          检索与引用识别评测
 data/knowledge_base.json 知识库数据（人工编写）
 ```
 
@@ -62,17 +66,11 @@ uv sync
 uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-**端口固定为 8000**，前端请求地址也必须用这个端口。
-
-另开一个终端启动前端：
-
-```powershell
-python -m http.server 5173 -d frontend
-```
+后端同时提供接口和 `frontend/` 下的页面，只需启动这一个服务。前端用相对路径 `/api` 请求接口，与页面同源，不需要 CORS。改前端文件后刷新浏览器即可，改 Python 代码由 `--reload` 自动重启。
 
 启动后：
 
-- 前端 http://127.0.0.1:5173
+- 前端 http://127.0.0.1:8000/
 - 接口文档 http://127.0.0.1:8000/docs
 - 健康检查 http://127.0.0.1:8000/api/health
 - 类型与中文名 http://127.0.0.1:8000/api/meta
@@ -83,7 +81,7 @@ python -m http.server 5173 -d frontend
 uv run python tests/test_api.py
 ```
 
-会启动真实的 ASGI 应用跑一遍契约，覆盖搜索评分、邻居方向、路径方向、图谱悬空边、错误形状和参数校验。模型调用使用模拟响应，不会消耗真实 API。
+会启动真实的 ASGI 应用跑一遍契约，覆盖搜索评分、邻居方向、路径方向、图谱悬空边、错误形状、参数校验和前端静态文件。模型调用使用模拟响应，不会消耗真实 API。
 
 ## RAG 评测
 

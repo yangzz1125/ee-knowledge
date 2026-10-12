@@ -19,19 +19,31 @@ def _normalize(text: str) -> str:
 
 
 def cited_entity_ids(answer: str, context: RetrievalContext) -> list[str]:
-    """返回回答中出现过名称或别名的知识点 ID，按在回答中第一次出现的位置排序。"""
+    """返回回答中出现过名称或别名的知识点 ID，按在回答中第一次出现的位置排序。
+
+    长名称优先占位：回答写「散度定理」时只算「散度定理」，不再顺带算上「散度」。
+    """
     text = _normalize(answer)
-    found: list[tuple[int, str]] = []
-    for entity in context.entities:
-        positions = [
-            text.find(_normalize(name))
+    names = sorted(
+        (
+            (_normalize(name), entity.id)
+            for entity in context.entities
             for name in (entity.name, *entity.aliases)
             if len(name) >= _MIN_NAME_LENGTH
-        ]
-        positions = [position for position in positions if position >= 0]
-        if positions:
-            found.append((min(positions), entity.id))
-    return [entity_id for _, entity_id in sorted(found)]
+        ),
+        key=lambda item: -len(item[0]),
+    )
+    taken = [False] * len(text)
+    first_seen: dict[str, int] = {}
+    for name, entity_id in names:
+        start = text.find(name)
+        while start >= 0:
+            end = start + len(name)
+            if not any(taken[start:end]):
+                taken[start:end] = [True] * len(name)
+                first_seen[entity_id] = min(first_seen.get(entity_id, start), start)
+            start = text.find(name, start + 1)
+    return sorted(first_seen, key=lambda entity_id: (first_seen[entity_id], entity_id))
 
 
 def citation_stats(answer: str, context: RetrievalContext) -> dict[str, object]:

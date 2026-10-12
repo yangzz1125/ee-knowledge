@@ -1,10 +1,14 @@
-"""FastAPI 应用装配入口。"""
+"""FastAPI 应用装配入口：同一个进程提供 /api 接口和 frontend/ 静态页面。"""
+
+from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .api import ai, entities, graph, system
 from .api.errors import register_error_handlers
+
+FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
 
 app = FastAPI(
     title="电磁场与波 AI 知识图谱 API",
@@ -12,21 +16,14 @@ app = FastAPI(
     version="0.2.0",
 )
 
-# 本地单用户工具允许 file:// 和任意本地静态服务访问。
-# 部署到公网前必须改为明确的来源列表。
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
-
 register_error_handlers(app)
 app.include_router(system.router)
 app.include_router(entities.router)
 app.include_router(graph.router)
 app.include_router(ai.router)
+# 必须在所有路由之后挂载：/api、/docs 先匹配，其余路径才去 frontend/ 找文件。
+# 页面和接口同源，浏览器不跨域，所以不需要 CORS。
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
 
 if __name__ == "__main__":

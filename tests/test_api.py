@@ -218,6 +218,17 @@ r = client.get("/api/does-not-exist")
 check("未知路径 404", r.status_code == 404, r.status_code)
 check("未知路径也是统一形状", set(r.json()["detail"]) == {"code", "message", "field"}, r.json())
 
+# ---------------------------------------------------------------- 前端静态文件
+
+r = client.get("/")
+check("根路径返回前端页面", r.status_code == 200 and "text/html" in r.headers["content-type"], r.headers)
+r = client.get("/js/app.js")
+check("前端脚本同源提供", r.status_code == 200, r.status_code)
+r = client.get("/vendor/katex/katex.min.js")
+check("本地第三方库可用", r.status_code == 200, r.status_code)
+r = client.get("/docs")
+check("接口文档不被静态文件遮住", r.status_code == 200, r.status_code)
+
 # ---------------------------------------------------------------- AI 问答
 
 with patch(
@@ -262,6 +273,13 @@ with patch("app.api.ai.call_model", return_value="「高斯定律」的适用条
     )
 check("历史实体可承接省略指代", "gauss-law" in r.json()["retrieved_entity_ids"], r.json())
 check("追问回答引用了历史实体", "gauss-law" in r.json()["used_entity_ids"], r.json())
+
+with patch("app.api.ai.call_model", return_value="「高斯定律」用于对称电荷分布。"):
+    r = client.post(
+        "/api/ai/ask",
+        json={"question": "高斯定律应该怎么用？", "context_entity_id": "curl"},
+    )
+check("「应该」不算指代，页面实体不抢排位", r.json()["retrieved_entity_ids"][0] == "gauss-law", r.json())
 
 with patch("app.api.ai.ensure_configured"), patch(
     "app.api.ai.stream_model", return_value=iter(["高斯", "定律"])

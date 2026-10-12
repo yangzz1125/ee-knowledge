@@ -1,4 +1,4 @@
-"""根路径、健康检查、元数据和章节接口。"""
+"""健康检查、元数据和章节接口。"""
 
 from fastapi import APIRouter
 
@@ -21,12 +21,6 @@ from ..domain.types import (
 )
 
 router = APIRouter()
-
-
-@router.get("/", tags=["系统"])
-def read_root() -> dict[str, str]:
-    """返回 API 名称和在线文档入口。"""
-    return {"message": COURSE.name + " AI 知识图谱 API", "docs": "/docs"}
 
 
 @router.get("/api/health", response_model=HealthResponse, tags=["系统"])
