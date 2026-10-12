@@ -18,7 +18,7 @@
 
 ```text
 app/
-├── main.py              创建应用、注册路由、挂载前端静态文件
+├── main.py              创建应用、注册路由、挂载前端构建产物 frontend/dist
 ├── dependencies.py      加载并提供共享知识图实例
 ├── ai/
 │   └── client.py        DeepSeek Responses API 客户端
@@ -40,17 +40,29 @@ app/
     ├── graph.py         搜索、邻居、路径和图谱算法
     ├── retrieval.py     AI 问答检索上下文（BM25）
     └── citations.py     识别回答实际引用的知识点
-frontend/
-├── index.html           Apple 风格应用界面
-├── styles.css           视觉系统与响应式布局
-├── vendor/              本地第三方库：KaTeX 0.16.11、marked 12.0.2、DOMPurify 3.1.6
-└── js/
+frontend/                Vue 3 + Vite，构建产物在 dist/（不入库）
+├── index.html           页面入口
+├── vite.config.js       开发代理 /api → 8000；构建输出 dist/
+└── src/
+    ├── App.vue          页面骨架：顶栏、浮层面板、星图
+    ├── store.js         全页共享状态与操作（选中、聚焦、路径、AI 引用）
     ├── api.js           后端请求与 SSE 解析
-    ├── graph.js         SVG 知识图谱：力导向布局、缩放平移
-    ├── chat.js          流式问答与页面内历史
-    ├── markdown.js      Markdown 安全渲染
-    ├── math.js          KaTeX 公式渲染
-    └── app.js           页面状态和交互装配
+    ├── palette.js       星体类型色与章节星云色
+    ├── graph/
+    │   ├── model.js     实体/关系 → 节点/连线，高亮规则
+    │   ├── forces.js    章节星团的锚点与聚拢力
+    │   ├── galaxy3d.js  3D 星系（3d-force-graph / three.js）
+    │   └── galaxy2d.js  2D 平面星图（force-graph），接口与 3D 相同
+    ├── components/
+    │   ├── GalaxyCanvas.vue  挂载 2D/3D 渲染器，镜头对焦
+    │   ├── SearchBox.vue     搜索与键盘选择
+    │   ├── ChapterPanel.vue  章节星团与类型筛选
+    │   ├── EntityCard.vue    知识点详情、公式、邻居
+    │   ├── PathPanel.vue     学习路径查询与沿路径飞行
+    │   ├── EntityPicker.vue  路径起终点选择框
+    │   └── ChatDock.vue      底部 AI 问答、流式回答与页面内历史
+    ├── lib/             Markdown 安全渲染、KaTeX 公式渲染
+    └── styles/main.css  深色星空与玻璃浮层的视觉样式
 tests/
 ├── test_api.py          接口自检
 └── rag_eval.py          检索与引用识别评测
@@ -61,16 +73,27 @@ data/knowledge_base.json 知识库数据（人工编写）
 
 ## 启动
 
+需要 Python（uv）和 Node.js 20 以上。
+
 ```powershell
 uv sync
+npm --prefix frontend ci
+npm --prefix frontend run build
 uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-后端同时提供接口和 `frontend/` 下的页面，只需启动这一个服务。前端用相对路径 `/api` 请求接口，与页面同源，不需要 CORS。改前端文件后刷新浏览器即可，改 Python 代码由 `--reload` 自动重启。
+后端同时提供接口和 `frontend/dist/` 里构建好的页面，只需启动这一个服务。前端用相对路径 `/api` 请求接口，与页面同源，不需要 CORS。没有构建前端时后端只提供接口，日志里会提示。
+
+改前端时用 Vite 开发服务器，保存即热更新，`/api` 自动转给 8000 端口的后端：
+
+```powershell
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload   # 一个终端
+npm --prefix frontend run dev                                        # 另一个终端，打开 http://127.0.0.1:5173/
+```
 
 启动后：
 
-- 前端 http://127.0.0.1:8000/
+- 前端 http://127.0.0.1:8000/（开发时 http://127.0.0.1:5173/）
 - 接口文档 http://127.0.0.1:8000/docs
 - 健康检查 http://127.0.0.1:8000/api/health
 - 类型与中文名 http://127.0.0.1:8000/api/meta
@@ -78,10 +101,11 @@ uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ## 自检
 
 ```powershell
+npm --prefix frontend run build   # 自检会检查构建产物
 uv run python tests/test_api.py
 ```
 
-会启动真实的 ASGI 应用跑一遍契约，覆盖搜索评分、邻居方向、路径方向、图谱悬空边、错误形状、参数校验和前端静态文件。模型调用使用模拟响应，不会消耗真实 API。
+会启动真实的 ASGI 应用跑一遍契约，覆盖搜索评分、邻居方向、路径方向、图谱悬空边、错误形状、参数校验和前端构建产物。模型调用使用模拟响应，不会消耗真实 API。
 
 ## RAG 评测
 
@@ -135,8 +159,8 @@ POST /api/ai/ask/stream  通过 SSE 流式返回回答
 - [x] MVP 章节骨架：6 章节
 - [x] 扩充草稿数据：77 实体 / 110 关系（其中 40 条跨章节），覆盖 6 章、全部 6 种实体类型和 9 种关系类型（待人工审核）
 - [ ] 按 6 个章节扩充课程知识数据
-- [x] Apple 风格正式前端：图谱、搜索、详情、邻居、SSE 问答和页面内历史
-- [x] 路径探索前端界面（学习路径标签页，图上按顺序展示）
+- [x] 3D 知识星图前端（Vue 3 + Vite）：3D/2D 切换、章节星团、搜索、详情、邻居、SSE 问答和页面内历史
+- [x] 路径探索：图上点亮路径，镜头可沿路径飞行
 - [x] DeepSeek AI 客户端（OpenAI Responses 协议）
 - [x] 当前页面内最多 10 轮连续问答
 - [x] SSE 流式回答

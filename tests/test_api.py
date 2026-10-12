@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -220,12 +221,14 @@ check("未知路径也是统一形状", set(r.json()["detail"]) == {"code", "mes
 
 # ---------------------------------------------------------------- 前端静态文件
 
+# 需要先构建前端：npm --prefix frontend run build
 r = client.get("/")
 check("根路径返回前端页面", r.status_code == 200 and "text/html" in r.headers["content-type"], r.headers)
-r = client.get("/js/app.js")
-check("前端脚本同源提供", r.status_code == 200, r.status_code)
-r = client.get("/vendor/katex/katex.min.js")
-check("本地第三方库可用", r.status_code == 200, r.status_code)
+assets = re.findall(r'(?:src|href)="(/assets/[^"]+\.(?:js|css))"', r.text)
+check("页面引用了构建产物", any(a.endswith(".js") for a in assets) and any(a.endswith(".css") for a in assets), assets)
+for asset in assets:
+    r = client.get(asset)
+    check(f"构建产物同源提供 {asset}", r.status_code == 200, r.status_code)
 r = client.get("/docs")
 check("接口文档不被静态文件遮住", r.status_code == 200, r.status_code)
 
