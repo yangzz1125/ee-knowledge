@@ -10,7 +10,6 @@ const EXAMPLES = ["高斯定律为什么需要闭合曲面？", "电位和电场
 const input = ref(null);
 const list = ref(null);
 const question = ref("");
-const expanded = ref(false);
 const streaming = ref(false);
 // 每条消息：{ role: user | assistant, text, ids, done, error }
 const messages = ref([]);
@@ -18,9 +17,6 @@ let history = loadHistory();
 let controller = null;
 
 const contextName = computed(() => (store.selectedId ? entityName(store.selectedId) : ""));
-const placeholder = window.matchMedia("(max-width: 600px)").matches
-  ? "问问 AI 助教"
-  : "问问 AI 助教，比如：高斯定律为什么需要闭合曲面？";
 
 /** sessionStorage 里最近 10 轮问答，刷新页面可恢复，关闭标签页清除。 */
 function loadHistory() {
@@ -55,7 +51,6 @@ const renderTarget = (element, message) => {
 async function ask(text) {
   const value = text.trim();
   if (!value || streaming.value) return;
-  expanded.value = true;
   question.value = "";
   messages.value.push({ role: "user", text: value });
   messages.value.push({ role: "assistant", text: "", ids: [], done: false, error: "" });
@@ -118,7 +113,6 @@ function onKeydown(event) {
     event.preventDefault();
     ask(question.value);
   }
-  if (event.key === "Escape") expanded.value = false;
 }
 
 function autosize() {
@@ -140,55 +134,47 @@ defineExpose({
   /** 从知识点卡片发起提问：填好问题并聚焦，让用户确认后再发送。 */
   prefill(text) {
     question.value = text;
-    expanded.value = true;
     nextTick(() => input.value.focus());
   },
 });
 </script>
 
 <template>
-  <section class="chat-dock" :class="{ expanded }" aria-label="AI 课程助教">
-    <div v-if="expanded" class="chat-panel glass-strong">
-      <header class="chat-head">
-        <span class="chat-title"><span class="spark"></span>AI 课程助教</span>
-        <span class="chat-context">{{ contextName ? `围绕「${contextName}」回答` : "只依据知识图谱作答" }}</span>
-        <button v-if="messages.length" type="button" class="text-button" @click="clear">清空</button>
-        <button type="button" class="icon-button" aria-label="收起对话" title="收起" @click="expanded = false">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-        </button>
-      </header>
-      <div ref="list" class="chat-list" aria-live="polite">
-        <div v-if="!messages.length" class="chat-welcome">
-          <strong>从一个问题开始</strong>
-          <p>回答只依据课程知识图谱，引用到的知识点会在图谱里高亮。</p>
-          <div class="examples">
-            <button v-for="example in EXAMPLES" :key="example" type="button" @click="ask(example)">{{ example }}</button>
+  <section class="chat-panel" aria-label="AI 课程助教">
+    <header class="chat-head">
+      <span class="chat-context">{{ contextName ? `围绕「${contextName}」回答` : "只依据知识图谱作答" }}</span>
+      <button v-if="messages.length" type="button" class="text-button" @click="clear">清空</button>
+    </header>
+    <div ref="list" class="chat-list" aria-live="polite">
+      <div v-if="!messages.length" class="chat-welcome">
+        <strong>从一个问题开始</strong>
+        <p>回答只依据课程知识图谱，引用到的知识点会在图谱里高亮。</p>
+        <div class="examples">
+          <button v-for="example in EXAMPLES" :key="example" type="button" @click="ask(example)">{{ example }}</button>
+        </div>
+      </div>
+      <template v-for="(message, index) in messages" :key="index">
+        <p v-if="message.role === 'user'" class="bubble user">{{ message.text }}</p>
+        <div v-else class="bubble assistant" :class="{ error: message.error }">
+          <p v-if="message.error">{{ message.error }}</p>
+          <p v-else-if="!message.text" class="thinking"><span></span><span></span><span></span>正在检索知识图谱</p>
+          <div v-else-if="!message.done" class="streaming">{{ message.text }}</div>
+          <div v-else :ref="element => renderTarget(element, message)" class="markdown"></div>
+          <div v-if="message.done && message.ids?.length" class="citations">
+            <span>依据</span>
+            <button v-for="id in message.ids" :key="id" type="button" class="neighbor"
+                    :style="{ '--c': entityColor(id) }" @click="selectEntity(id)">
+              <span class="dot"></span>{{ entityName(id) }}
+            </button>
+            <button type="button" class="text-button" @click="showCitations(message.ids)">在图谱中高亮</button>
           </div>
         </div>
-        <template v-for="(message, index) in messages" :key="index">
-          <p v-if="message.role === 'user'" class="bubble user">{{ message.text }}</p>
-          <div v-else class="bubble assistant" :class="{ error: message.error }">
-            <p v-if="message.error">{{ message.error }}</p>
-            <p v-else-if="!message.text" class="thinking"><span></span><span></span><span></span>正在检索知识图谱</p>
-            <div v-else-if="!message.done" class="streaming">{{ message.text }}</div>
-            <div v-else :ref="element => renderTarget(element, message)" class="markdown"></div>
-            <div v-if="message.done && message.ids?.length" class="citations">
-              <span>依据</span>
-              <button v-for="id in message.ids" :key="id" type="button" class="neighbor"
-                      :style="{ '--c': entityColor(id) }" @click="selectEntity(id)">
-                <span class="dot"></span>{{ entityName(id) }}
-              </button>
-              <button type="button" class="text-button" @click="showCitations(message.ids)">在图谱中高亮</button>
-            </div>
-          </div>
-        </template>
-      </div>
+      </template>
     </div>
 
-    <form class="composer glass-strong" @submit.prevent="ask(question)">
-      <span class="spark" aria-hidden="true"></span>
-      <textarea ref="input" v-model="question" rows="1" maxlength="500" :placeholder="placeholder"
-                aria-label="向 AI 课程助教提问" @focus="expanded = true" @keydown="onKeydown"></textarea>
+    <form class="composer" @submit.prevent="ask(question)">
+      <textarea ref="input" v-model="question" rows="1" maxlength="500" placeholder="问问 AI 助教，Enter 发送，Shift+Enter 换行"
+                aria-label="向 AI 课程助教提问" @keydown="onKeydown"></textarea>
       <button v-if="streaming" type="button" class="send-button stop" aria-label="停止回答" title="停止" @click="stop">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2" /></svg>
       </button>

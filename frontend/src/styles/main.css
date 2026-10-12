@@ -379,26 +379,10 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .round-button svg { width: 18px; height: 18px; }
 .hint { margin: 0; color: var(--ink-3); font-size: 12px; }
 
-/* ---------- AI 助教 ---------- */
-.chat-dock {
-  position: absolute; z-index: 18;
-  left: 50%; bottom: var(--gap);
-  transform: translateX(-50%);
-  width: min(680px, calc(100vw - 2 * var(--rail-w) - 80px));
-  display: grid; gap: 10px;
-}
-.app:has(.drawer) .chat-dock {
-  left: calc(var(--gap) + var(--rail-w) + 24px);
-  right: calc(var(--gap) * 2 + var(--drawer-w));
-  width: auto; max-width: 680px;
-  margin: 0 auto;
-  transform: none;
-}
-.chat-panel { display: flex; flex-direction: column; max-height: min(56vh, 560px); overflow: hidden; }
-.chat-head { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 16px; border-bottom: 1px solid var(--line); }
-.chat-title { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+/* ---------- AI 助教（右侧栏页签）：上面是对话记录，输入框固定在底部 ---------- */
+.chat-panel { display: flex; flex-direction: column; height: 100%; min-height: 50vh; }
+.chat-head { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 4px 12px 4px 22px; border-bottom: 1px solid var(--line); }
 .chat-context { flex: 1; overflow: hidden; color: var(--ink-3); font-size: 12px; white-space: nowrap; text-overflow: ellipsis; }
-.spark { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--link); }
 .chat-list { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding: 16px; }
 .chat-welcome { display: grid; gap: 6px; justify-items: start; }
 .chat-welcome p { margin: 0; color: var(--ink-2); }
@@ -427,18 +411,22 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .citations { align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .citations > span { color: var(--ink-3); font-size: 12px; }
 
-.composer { display: flex; align-items: flex-end; gap: 10px; padding: 8px 8px 8px 18px; border-radius: 24px; }
-.composer .spark { align-self: center; }
+.composer {
+  display: flex; align-items: flex-end; gap: 8px;
+  margin: 0 12px 12px; padding: 6px 6px 6px 14px;
+  border: 1px solid var(--line); border-radius: 14px;
+  background: #fff;
+}
 .composer textarea {
-  flex: 1; max-height: 120px; padding: 9px 0;
+  flex: 1; max-height: 120px; padding: 8px 0;
   border: 0; background: none; outline: none; resize: none;
 }
 .composer textarea::placeholder { color: var(--ink-3); }
-.composer:focus-within { border-color: var(--line-strong); box-shadow: var(--shadow), 0 0 0 4px rgba(59, 85, 196, 0.08); }
+.composer:focus-within { border-color: var(--line-strong); box-shadow: 0 0 0 3px rgba(59, 85, 196, 0.08); }
 .send-button {
   flex: none; display: grid; place-items: center;
-  width: 40px; height: 40px; padding: 0;
-  border: 0; border-radius: 50%;
+  width: 36px; height: 36px; padding: 0;
+  border: 0; border-radius: 10px;
   background: var(--accent); color: var(--on-accent);
 }
 .send-button:disabled { opacity: 0.3; }
@@ -484,6 +472,4 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   .chapter-panel.open { display: block; }
   .focus-banner { top: 122px; max-width: calc(100% - 24px); }
   .drawer { top: auto; left: var(--gap); right: var(--gap); bottom: var(--gap); width: auto; max-height: 72vh; z-index: 25; }
-  .chat-dock, .app:has(.drawer) .chat-dock { left: var(--gap); right: var(--gap); width: auto; transform: none; }
-  .view-tools { bottom: 84px; }
 }

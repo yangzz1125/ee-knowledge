@@ -58,7 +58,7 @@ frontend/                Vue 3 + Vite，构建产物在 dist/（不入库）
     │   ├── EntityCard.vue    知识点详情、公式、邻居
     │   ├── PathPanel.vue     学习路径查询与沿路径飞行
     │   ├── EntityPicker.vue  路径起终点选择框
-    │   └── ChatDock.vue      底部 AI 问答、流式回答与页面内历史
+    │   └── ChatPanel.vue     右侧栏 AI 助教页签：流式回答与页面内历史
     ├── lib/             Markdown 安全渲染、KaTeX 公式渲染
     └── styles/main.css  纸面配色与浮层样式
 tests/

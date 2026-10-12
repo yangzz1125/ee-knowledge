@@ -88,7 +88,7 @@ function overlayInsets() {
   const canvas = host.value.getBoundingClientRect();
   const insets = { left: 0, right: 0, top: 0, bottom: 0 };
   const gap = 12;
-  document.querySelectorAll(".topbar, .chapter-panel, .drawer, .chat-dock").forEach(element => {
+  document.querySelectorAll(".topbar, .chapter-panel, .drawer").forEach(element => {
     const box = element.getBoundingClientRect();
     if (!box.width || !box.height) return;
     if (box.height > canvas.height / 2 && box.width < canvas.width / 2) {

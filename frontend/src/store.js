@@ -27,7 +27,8 @@ export const store = reactive({
   pathStartId: null,            // 学习路径表单里选好的起点和终点
   pathEndId: null,
   citedIds: [],                 // 最近一次 AI 回答实际引用的知识点
-  panel: null,                  // detail | path | null
+  // 右侧栏页签：detail | path | chat，null 为收起。宽屏默认打开 AI 助教；窄屏侧栏会挡住大半个图谱，默认收起。
+  panel: window.matchMedia("(min-width: 901px)").matches ? "chat" : null,
   toast: "",
 });
 

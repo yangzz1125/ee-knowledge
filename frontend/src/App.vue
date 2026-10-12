@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { loadApplicationData } from "./api.js";
 import ChapterPanel from "./components/ChapterPanel.vue";
-import ChatDock from "./components/ChatDock.vue";
+import ChatPanel from "./components/ChatPanel.vue";
 import EntityCard from "./components/EntityCard.vue";
 import GraphCanvas from "./components/GraphCanvas.vue";
 import PathPanel from "./components/PathPanel.vue";
@@ -31,6 +31,7 @@ function backToOverview() {
 }
 
 function askAbout(entity) {
+  store.panel = "chat";
   chat.value.prefill(`请解释${entity.name}，并说明它的关键点。`);
 }
 
@@ -89,6 +90,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
       <SearchBox v-if="store.status === 'online'" />
       <div class="top-actions">
         <button type="button" class="pill-button nav-toggle" :aria-expanded="navOpen" @click="navOpen = !navOpen">章节</button>
+        <button type="button" class="pill-button" :class="{ active: store.panel === 'chat' }" aria-label="AI 助教"
+                @click="openPanel('chat')">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" /></svg>
+          <span class="pill-label">AI 助教</span>
+        </button>
         <button type="button" class="pill-button" :class="{ active: store.panel === 'path' }" aria-label="学习路径"
                 @click="openPanel('path')">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="18" r="2.2" /><circle cx="19" cy="6" r="2.2" /><path d="M7 17c6-1 4-9 10-10" /></svg>
@@ -109,12 +115,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
       <button type="button" class="text-button" @click="backToOverview">回到全景</button>
     </div>
 
-    <aside v-if="store.panel" class="drawer glass-strong" aria-label="知识点详情与学习路径">
+    <!-- 用 v-show：关掉侧栏或切到别的页签时，AI 对话和正在生成的回答都保留。 -->
+    <aside v-show="store.panel" class="drawer glass-strong" aria-label="知识点、学习路径与 AI 助教">
       <div class="drawer-tabs" role="tablist">
         <button type="button" role="tab" :aria-selected="store.panel === 'detail'" :class="{ active: store.panel === 'detail' }"
                 :disabled="!store.selectedId" @click="store.panel = 'detail'">知识点</button>
         <button type="button" role="tab" :aria-selected="store.panel === 'path'" :class="{ active: store.panel === 'path' }"
                 @click="store.panel = 'path'">学习路径</button>
+        <button type="button" role="tab" :aria-selected="store.panel === 'chat'" :class="{ active: store.panel === 'chat' }"
+                @click="store.panel = 'chat'">AI 助教</button>
         <button type="button" class="icon-button" aria-label="关闭面板" title="关闭" @click="store.panel = null">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
         </button>
@@ -122,7 +131,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
       <div class="drawer-body">
         <EntityCard v-if="store.panel === 'detail'" @ask="askAbout"
                     @path-start="id => setPathEnd('pathStartId', id)" @path-end="id => setPathEnd('pathEndId', id)" />
-        <PathPanel v-else @tour="ids => graph?.tour(ids)" />
+        <PathPanel v-else-if="store.panel === 'path'" @tour="ids => graph?.tour(ids)" />
+        <ChatPanel v-if="store.status === 'online'" v-show="store.panel === 'chat'" ref="chat" />
       </div>
     </aside>
 
@@ -132,8 +142,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
       </button>
       <p class="hint">拖动画布平移 · 拖动节点 · 滚轮缩放 · 点击节点查看详情</p>
     </div>
-
-    <ChatDock v-if="store.status === 'online'" ref="chat" />
 
     <div class="toast" :class="{ show: store.toast }" role="status" aria-live="polite">{{ store.toast }}</div>
   </div>
