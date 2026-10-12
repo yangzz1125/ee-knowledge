@@ -10,12 +10,15 @@
 
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+# 本脚本一分钟内会发十几次 AI 请求，先关掉限流；限流本身在文末单独检查。
+os.environ["AI_RATE_LIMIT_PER_MINUTE"] = "0"
 
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -337,6 +340,26 @@ check("空问题 422", r.status_code == 422, r.status_code)
 
 r = client.post("/api/ai/ask", json={"question": "x" * 501})
 check("超长问题 422", r.status_code == 422, r.status_code)
+
+# ---------------------------------------------------------------- 限流
+
+from app.api import ai as ai_api  # noqa: E402
+from app.api.ratelimit import RateLimiter  # noqa: E402
+
+now = [0.0]
+limiter = RateLimiter(2, window=60, clock=lambda: now[0])
+check("窗口内前 2 次放行", limiter.hit("a") == 0 and limiter.hit("a") == 0)
+check("第 3 次超限并给出等待秒数", limiter.hit("a") == 60)
+check("不同来源分开计数", limiter.hit("b") == 0)
+now[0] = 60
+check("窗口过去后重新放行", limiter.hit("a") == 0)
+
+with patch.object(ai_api, "ai_limiter", RateLimiter(1)):
+    client.post("/api/ai/ask", json={"question": "完全无关的问题 zzzz"})
+    r = client.post("/api/ai/ask", json={"question": "完全无关的问题 zzzz"})
+check("超限返回 429", r.status_code == 429, r.status_code)
+check("限流错误码", r.json()["detail"]["code"] == "rate_limited", r.json())
+check("限流带 Retry-After", r.headers.get("retry-after") == "60", dict(r.headers))
 
 print(
     f"接口自检通过：{health['counts']['chapters']} 章节 / "

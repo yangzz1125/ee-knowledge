@@ -27,7 +27,8 @@ async def http_exception_handler(
     """把 HTTP 异常转换为统一错误结构。"""
     detail = exc.detail
     if isinstance(detail, dict) and "code" in detail:
-        return JSONResponse(status_code=exc.status_code, content={"detail": detail})
+        # 保留异常自带的响应头，例如限流的 Retry-After。
+        return JSONResponse(status_code=exc.status_code, content={"detail": detail}, headers=exc.headers)
     code = "not_found" if exc.status_code == 404 else "internal_error"
     return error_response(exc.status_code, code, str(detail))
 

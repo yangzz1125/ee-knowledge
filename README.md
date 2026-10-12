@@ -124,15 +124,16 @@ uv run python tests/rag_eval.py --live   # 再用真实模型回答，对比检�
 
 ## AI 配置
 
-本地 `.env` 需要配置：
+把 `.env.example` 复制为 `.env` 并填写：
 
 ```dotenv
 DEEPSEEK_API_KEY=你的密钥
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
+AI_RATE_LIMIT_PER_MINUTE=10   # 同一 IP 每分钟最多提问几次，超出返回 429；0 为不限
 ```
 
-`.env` 已被 Git 忽略。AI 客户端通过 OpenAI Responses 协议调用配置的服务。
+`.env` 已被 Git 忽略。AI 客户端通过 OpenAI Responses 协议调用配置的服务。服务器上也可以不用 `.env`，直接设置同名环境变量，环境变量优先。
 
 AI 提供两个接口：
 
@@ -142,6 +143,76 @@ POST /api/ai/ask/stream  通过 SSE 流式返回回答
 ```
 
 前端在当前标签页的 `sessionStorage` 中缓存最近 10 个完整问答轮次，并通过请求的 `history` 传给后端。刷新页面会恢复，关闭标签页后清除；后端不持久化，每一轮仍会重新检索知识图谱。
+
+## 部署到服务器
+
+给学生用的服务只需要仓库里的内容：`app/`、`frontend/`、`data/`、`pyproject.toml`、`uv.lock`。个人汇报材料不在仓库里。
+
+1. 环境：Python 3.11 以上、[uv](https://docs.astral.sh/uv/)、Node.js 20 以上（只在构建前端时用）。
+2. 拉代码、安装依赖、构建前端：
+
+   ```bash
+   git clone https://github.com/yangzz1125/ee-knowledge.git
+   cd ee-knowledge
+   uv sync --frozen
+   npm --prefix frontend ci && npm --prefix frontend run build
+   ```
+
+3. 配置：`cp .env.example .env`，填 DeepSeek 密钥，按班级规模调整 `AI_RATE_LIMIT_PER_MINUTE`。
+4. 启动，只开一个进程，不带 `--reload`：
+
+   ```bash
+   uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+   ```
+
+   - 限流计数保存在进程内存里，开多个 worker 会各算各的，所以只开一个进程。
+   - 推荐前面放 nginx 负责 HTTPS 和对外端口，uvicorn 只监听本机。不用 nginx、直接对外时改成 `--host 0.0.0.0`。
+
+5. nginx 反向代理示例：
+
+   ```nginx
+   location / {
+       proxy_pass http://127.0.0.1:8000;
+       proxy_set_header Host $host;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $scheme;
+       proxy_buffering off;       # AI 回答是 SSE 流，开着缓冲会等整段生成完才显示
+       proxy_read_timeout 300s;   # 长回答
+   }
+   ```
+
+   uvicorn 默认信任 127.0.0.1 发来的 `X-Forwarded-For`，所以限流按学生的真实 IP 计算。如果学生都经同一个出口 IP 访问（例如服务器在校外、学生都在校园网里），他们会共用一份额度，这时把上限调大或设为 0。
+
+6. 开机自启、崩溃自动重启（systemd，路径按实际修改，`uv` 的位置用 `which uv` 查）：
+
+   ```ini
+   # /etc/systemd/system/ee-knowledge.service
+   [Unit]
+   Description=ee-knowledge
+   After=network.target
+
+   [Service]
+   WorkingDirectory=/opt/ee-knowledge
+   ExecStart=/usr/local/bin/uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+   Restart=always
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   ```bash
+   sudo systemctl enable --now ee-knowledge
+   ```
+
+7. 更新版本：
+
+   ```bash
+   git pull && uv sync --frozen
+   npm --prefix frontend ci && npm --prefix frontend run build
+   sudo systemctl restart ee-knowledge
+   ```
+
+8. 检查：`curl http://127.0.0.1:8000/api/health` 返回 `"status": "ok"` 即正常。
 
 ## 改数据
 
@@ -163,18 +234,11 @@ POST /api/ai/ask/stream  通过 SSE 流式返回回答
 - [x] 当前页面内最多 10 轮连续问答
 - [x] SSE 流式回答
 
-## 参考项目
-
-`reference-projects/` 放的是只用于源码学习的外部项目，不参与构建，已在 `.gitignore` 中排除。
-
 ## 目录约定
 
 | 目录 | 内容 |
 | --- | --- |
 | `app/` `frontend/` `data/` `tests/` | 项目代码与数据 |
 | `docs/` | 需求、数据结构、接口契约文档 |
-| `reports/` | 调研汇报稿、docx/pptx 及配图 |
-| `assets/` | 汇报用图表和素材 |
-| `tools/` | 生成汇报文档和图表的脚本 |
-| `learning/` | 前端学习笔记和练习页面 |
 | `scratch/` | 临时/QA 文件（不入库） |
+| `reports/` `assets/` `tools/` `learning/` | 个人汇报、配图和学习材料（只在本机，不入库，不部署） |

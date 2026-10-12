@@ -15,9 +15,6 @@ node_modules/
 # Virtual environments
 .venv
 
-# External projects used only for source-code study
-reference-projects/
-
 # Scratch / QA workspace, installers and build leftovers
 scratch/
 NUL
@@ -35,3 +32,11 @@ NUL
 # Editor / OS
 .vscode/
 .DS_Store
+
+# Personal materials (reports, slides, figures, learning notes, agent skills).
+# Kept on the author's machine only; not part of the app deployed for students.
+reports/
+assets/
+tools/
+learning/
+.agents/
