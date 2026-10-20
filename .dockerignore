@@ -1,0 +1,15 @@
+**
+!deployment/
+!deployment/Dockerfile
+!pyproject.toml
+!uv.lock
+!README.md
+!app/
+!app/**
+!data/
+!data/knowledge_base.json
+!frontend/
+!frontend/dist/
+!frontend/dist/**
+**/__pycache__/
+**/*.pyc
