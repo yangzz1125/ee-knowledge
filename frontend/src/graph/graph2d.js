@@ -15,29 +15,34 @@ const radiusOf = node => (node.ghost ? node.radius * GHOST_SCALE : node.radius);
 // 名字和节点一样跟着缩放：字号（世界坐标）随节点半径增大，关键节点的名字更大。
 // 名字在屏幕上小于 LABEL_HIDE_PX 时不画，到 LABEL_SHOW_PX 时完全不透明；
 // 所以放大时大节点的名字先出现，继续放大小节点的名字才陆续淡入。
-const labelSize = radius => 1.2 + radius * 0.6;
+const labelSize = radius => 1.8 + radius * 0.5;
 const LABEL_HIDE_PX = 6;
 const LABEL_SHOW_PX = 9;
+const LABEL_MAX_PX = 14;
 
 /**
  * 2D 图谱，参照 Obsidian 关系图谱：纯色圆点按章节上色、细线、悬停聚焦、标签随缩放淡入、可拖动节点。
  * 不按章节分区，布局只由连线和斥力决定；同章节点连线多，自然会聚在一起。
  * 悬停时直接显示邻居名字，所以不弹提示框。
  * setView 切换全景和章节视图：章节视图只留本章和相连的别章节点并重新排布，退出时节点飞回全景原位。
- * callbacks: onSelect(id)、onBackground()、onHover(id | null)、
+ * callbacks: onSelect(id)、onBackground()、onHover(id | null)、onDrag(id | null)、
  * onLayoutReady()（首次布局完成、切换视图后布局成形时调用，此时才能按节点位置移动镜头）。
  */
 export function createGraph2D(element, callbacks) {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let emphasis = null;
   let litColor = INK;
+  let draggingId = null;
 
   const graph = new ForceGraph(element)
     .backgroundColor("rgba(0,0,0,0)")
     .autoPauseRedraw(false)
-    .warmupTicks(80)
-    .cooldownTicks(220)
-    .d3VelocityDecay(0.32)
+    .warmupTicks(100)
+    .cooldownTicks(120)
+    .cooldownTime(1800)
+    .d3AlphaMin(0.005)
+    .d3AlphaDecay(0.05)
+    .d3VelocityDecay(0.65)
     .minZoom(0.3)
     .maxZoom(12)
     .nodeLabel(() => "")
@@ -52,8 +57,27 @@ export function createGraph2D(element, callbacks) {
     .linkCanvasObject((link, context, scale) => drawLink(link, context, scale))
     .onNodeClick(node => callbacks.onSelect(node.id))
     .onNodeHover(node => {
+      if (draggingId) return;
       element.style.cursor = node ? "pointer" : "";
       callbacks.onHover(node ? node.id : null);
+    })
+    .onNodeDrag(node => {
+      if (draggingId === node.id) return;
+      draggingId = node.id;
+      // 冷却后的 alpha 已低于停止阈值，仅重置计时不会让邻居重新运动。
+      // 每次开始拖动都重新启动模拟，拖动过程由库维持温度。
+      graph.d3ReheatSimulation();
+      element.style.cursor = "grabbing";
+      callbacks.onDrag(node.id);
+    })
+    .onNodeDragEnd(node => {
+      // 松手后解除鼠标约束，节点与邻居一起回到力学平衡，再随冷却停下。
+      node.fx = undefined;
+      node.fy = undefined;
+      draggingId = null;
+      element.style.cursor = "pointer";
+      callbacks.onHover(node.id);
+      callbacks.onDrag(null);
     })
     .onBackgroundClick(() => callbacks.onBackground());
 
@@ -220,10 +244,10 @@ export function createGraph2D(element, callbacks) {
       context.stroke();
     }
 
-    // 点亮的节点和筛选出的节点总显示名字，屏幕上至少 10px；其余按屏幕字号淡入。
+    // 标签放大到屏幕上最多 14px；点亮和筛选时至少 10px，其余按屏幕字号淡入。
     const lit = level === "lit";
     const forced = lit || (level === "normal" && emphasis?.filtered);
-    let size = labelSize(radius);
+    let size = Math.min(labelSize(radius), LABEL_MAX_PX / scale);
     let show = Math.min(1, Math.max(0, (size * scale - LABEL_HIDE_PX) / (LABEL_SHOW_PX - LABEL_HIDE_PX)));
     if (forced) {
       size = Math.max(size, 10 / scale);
@@ -291,20 +315,29 @@ export function createGraph2D(element, callbacks) {
   let size = { width: element.clientWidth || 1, height: element.clientHeight || 1 };
   const visibleOffset = () => ({ x: (insets.left - insets.right) / 2, y: (insets.top - insets.bottom) / 2 });
 
-  function fitWithin(nodes, maxScale = 4, durationMs = 900) {
+  // trim：横纵两个方向各去掉两端这个比例的节点再取范围，镜头对准主体，零散的边缘节点可以落到屏幕外。
+  function fitWithin(nodes, { maxScale = 4, trim = 0, durationMs = 900 } = {}) {
     const placed = nodes.filter(node => Number.isFinite(node.x));
     if (!placed.length) return;
-    const margin = 60;
-    const xs = placed.flatMap(node => [node.x - radiusOf(node), node.x + radiusOf(node)]);
-    const ys = placed.flatMap(node => [node.y - radiusOf(node), node.y + radiusOf(node) + 14]);
-    const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+    const margin = 30;
+    const span = values => {
+      const sorted = values.sort((a, b) => a - b);
+      const cut = Math.floor(sorted.length * trim);
+      return [sorted[cut], sorted[sorted.length - 1 - cut]];
+    };
+    const [minX, maxX] = span(placed.map(node => node.x));
+    const [minY, maxY] = span(placed.map(node => node.y));
+    const pad = Math.max(...placed.map(radiusOf));
+    const width = maxX - minX + pad * 2;
+    // 底部多留出名字的高度。
+    const height = maxY - minY + pad * 2 + 14;
     const room = {
       width: Math.max(120, size.width - insets.left - insets.right - margin * 2),
       height: Math.max(120, size.height - insets.top - insets.bottom - margin * 2),
     };
-    const scale = Math.min(maxScale, Math.max(0.3, Math.min(room.width / (maxX - minX || 1), room.height / (maxY - minY || 1))));
+    const scale = Math.min(maxScale, Math.max(0.3, Math.min(room.width / width, room.height / height)));
     const offset = visibleOffset();
-    graph.centerAt((minX + maxX) / 2 - offset.x / scale, (minY + maxY) / 2 - offset.y / scale, durationMs);
+    graph.centerAt((minX + maxX) / 2 - offset.x / scale, (minY + maxY + 14) / 2 - offset.y / scale, durationMs);
     graph.zoom(scale, durationMs);
   }
 
@@ -342,9 +375,9 @@ export function createGraph2D(element, callbacks) {
       fitWithin(graph.graphData().nodes.filter(node => set.has(node.id)));
     },
     fitAll() {
-      // 全景不放得太大：像 Obsidian 一样四周留白，只露出关键节点的名字，细节靠放大看。
-      // 章节视图节点少，可以放大一些。
-      fitWithin(graph.graphData().nodes, view ? 2.5 : 1.4);
+      // 全景不求一眼看全：镜头对准中间的主体并放大，打开页面就能看清名字，四周的节点拖动画布再看。
+      // 章节视图节点少，完整显示。
+      fitWithin(graph.graphData().nodes, view ? { maxScale: 3.5 } : { maxScale: 4, trim: 0.18 });
     },
     setInsets(next) {
       insets = next;

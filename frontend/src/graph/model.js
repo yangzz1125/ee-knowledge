@@ -52,11 +52,12 @@ export function buildAdjacency(relations) {
 
 /**
  * 根据当前状态决定每个节点、每条线的亮度：lit 点亮、normal 常态、dim 变暗。
- * 优先级：悬停 > 学习路径 > 选中 > AI 回答引用；都没有时按类型筛选变暗。
+ * 优先级：拖动 > 悬停 > 学习路径 > 选中 > AI 回答引用；都没有时按类型筛选变暗。
  * 章节不在这里处理：章节视图直接换掉图上的节点，见 graph2d.js 的 setView。
  */
 export function computeEmphasis(state, adjacency) {
-  const { hoverId, path, selectedId, citedIds, entityType } = state;
+  const { dragId, hoverId, path, selectedId, citedIds, entityType } = state;
+  const activeId = dragId || hoverId;
   let nodes = null;
   let links = null;
 
@@ -64,7 +65,7 @@ export function computeEmphasis(state, adjacency) {
     nodes = new Set([id, ...(adjacency.neighbors.get(id) || [])]);
     links = new Set(adjacency.links.get(id) || []);
   };
-  if (hoverId) around(hoverId);
+  if (activeId) around(activeId);
   else if (path) {
     nodes = new Set(path.ids);
     links = new Set(path.relationKeys);
@@ -93,7 +94,7 @@ export function computeEmphasis(state, adjacency) {
     linkLevel,
     filtered,
     // 点亮的连线取这个节点的颜色；学习路径和 AI 引用没有中心节点。
-    centerId: hoverId || (path ? null : selectedId),
+    centerId: activeId || (path ? null : selectedId),
     selectedId,
     pathEnds: path ? new Set([path.ids[0], path.ids.at(-1)]) : new Set(),
   };

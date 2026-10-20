@@ -449,7 +449,8 @@
         "无源介质"
       ],
       "conditions": [
-        "适用于均匀、线性、无源介质"
+        "均匀、线性、各向同性、无源介质",
+        "无耗介质（σ = 0），ε 和 μ 为常数"
       ],
       "details": {
         "latex": "\\nabla^2 \\mathbf{E} - \\mu\\varepsilon \\frac{\\partial^2 \\mathbf{E}}{\\partial t^2} = 0",
@@ -468,6 +469,20 @@
             "quantity_id": null,
             "unit": "s",
             "description": "观察时刻。"
+          },
+          {
+            "symbol": "μ",
+            "name": "磁导率",
+            "quantity_id": "permeability",
+            "unit": "H/m",
+            "description": "均匀无耗介质的磁导率。"
+          },
+          {
+            "symbol": "ε",
+            "name": "介电常数",
+            "quantity_id": "permittivity",
+            "unit": "F/m",
+            "description": "均匀无耗介质的介电常数。"
           }
         ]
       }
@@ -1126,9 +1141,15 @@
       "type": "formula",
       "summary": "导体中电流密度与电场强度成正比。",
       "chapter_id": "constant-current-field",
-      "aliases": [],
+      "aliases": [
+        "局部欧姆定律",
+        "电流密度与电场强度关系"
+      ],
       "tags": [
-        "恒定电流场"
+        "恒定电流场",
+        "导体",
+        "电流密度",
+        "电场强度"
       ],
       "conditions": [
         "线性各向同性导电介质"
@@ -2204,6 +2225,1869 @@
           "极化"
         ]
       }
+    },
+    {
+      "id": "scalar-field",
+      "name": "标量场",
+      "type": "concept",
+      "chapter_id": "vector-analysis",
+      "summary": "给空间每一点赋予标量值的函数，例如电位分布。",
+      "aliases": [
+        "标量函数场"
+      ],
+      "tags": [
+        "场",
+        "电位",
+        "梯度"
+      ],
+      "conditions": [],
+      "details": {
+        "definition": "在空间区域内，每一点对应一个标量值的函数称为标量场。",
+        "key_points": [
+          "电位和电荷体密度都是标量场",
+          "标量场的梯度描述其空间变化并产生矢量场"
+        ],
+        "common_misconceptions": [
+          "标量场没有矢量方向，但可以随空间位置变化"
+        ]
+      }
+    },
+    {
+      "id": "laplacian",
+      "name": "拉普拉斯算子",
+      "type": "concept",
+      "chapter_id": "vector-analysis",
+      "summary": "用梯度的散度描述标量场的二阶空间变化。",
+      "aliases": [
+        "拉普拉斯算符",
+        "Laplace算子"
+      ],
+      "tags": [
+        "二阶偏导数",
+        "场方程"
+      ],
+      "conditions": [],
+      "details": {
+        "definition": "标量函数的拉普拉斯算子定义为其梯度的散度，即 ∇²φ = ∇·(∇φ)。",
+        "key_points": [
+          "直角坐标下等于三个坐标方向的二阶偏导数之和",
+          "出现在泊松方程、拉普拉斯方程和波动方程中",
+          "圆柱和球坐标下应使用相应坐标系的表达式"
+        ],
+        "common_misconceptions": [
+          "∇²φ = 0 不表示 φ 为零，也不表示它的梯度为零"
+        ]
+      }
+    },
+    {
+      "id": "conservative-field",
+      "name": "保守场",
+      "type": "concept",
+      "chapter_id": "vector-analysis",
+      "summary": "线积分与路径无关、可以由标量势描述的矢量场。",
+      "aliases": [
+        "势场"
+      ],
+      "tags": [
+        "线积分",
+        "环量",
+        "静电场"
+      ],
+      "conditions": [
+        "由无旋条件判断全局保守性时，区域应单连通且场连续可微"
+      ],
+      "details": {
+        "definition": "在给定区域内，任意两点之间的线积分只取决于端点而与路径无关的矢量场称为保守场。",
+        "key_points": [
+          "闭合路径上的环量为零",
+          "静电场可以写成电位的负梯度",
+          "在单连通区域内，连续可微的无旋场是保守场"
+        ],
+        "common_misconceptions": [
+          "仅在局部旋度为零，还要结合区域是否单连通判断全局路径无关性"
+        ]
+      }
+    },
+    {
+      "id": "gradient-cartesian-formula",
+      "name": "梯度直角坐标表达式",
+      "type": "formula",
+      "chapter_id": "vector-analysis",
+      "summary": "通过标量函数对三个坐标的偏导数计算梯度。",
+      "aliases": [],
+      "tags": [
+        "梯度",
+        "直角坐标",
+        "偏导数"
+      ],
+      "conditions": [
+        "标量函数在考察区域可微",
+        "采用直角坐标系"
+      ],
+      "details": {
+        "latex": "\\nabla\\varphi=\\hat{\\mathbf{x}}\\frac{\\partial\\varphi}{\\partial x}+\\hat{\\mathbf{y}}\\frac{\\partial\\varphi}{\\partial y}+\\hat{\\mathbf{z}}\\frac{\\partial\\varphi}{\\partial z}",
+        "plain_text": "∇φ = x̂ ∂φ/∂x + ŷ ∂φ/∂y + ẑ ∂φ/∂z",
+        "variables": [
+          {
+            "symbol": "φ",
+            "name": "标量函数",
+            "quantity_id": null,
+            "unit": null,
+            "description": "待求梯度的标量场，其单位取决于物理意义。"
+          },
+          {
+            "symbol": "x, y, z",
+            "name": "直角坐标",
+            "quantity_id": null,
+            "unit": "m",
+            "description": "空间位置的三个直角坐标。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "curl-curl-identity",
+      "name": "旋度的旋度恒等式",
+      "type": "formula",
+      "chapter_id": "vector-analysis",
+      "summary": "将二次旋度化为散度的梯度与矢量拉普拉斯算子的差。",
+      "aliases": [
+        "双旋度恒等式"
+      ],
+      "tags": [
+        "旋度",
+        "拉普拉斯算子",
+        "波动方程"
+      ],
+      "conditions": [
+        "矢量场二阶连续可微"
+      ],
+      "details": {
+        "latex": "\\nabla\\times(\\nabla\\times\\mathbf{A})=\\nabla(\\nabla\\cdot\\mathbf{A})-\\nabla^2\\mathbf{A}",
+        "plain_text": "∇ × (∇ × A) = ∇(∇ · A) − ∇²A",
+        "variables": [
+          {
+            "symbol": "A",
+            "name": "矢量函数",
+            "quantity_id": null,
+            "unit": null,
+            "description": "任意满足二阶连续可微条件的矢量场，单位随场的物理意义确定。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "superposition-principle",
+      "name": "叠加原理",
+      "type": "law",
+      "chapter_id": "vector-analysis",
+      "summary": "线性场问题中，各独立源产生的场可以相加得到总场。",
+      "aliases": [
+        "场的叠加原理"
+      ],
+      "tags": [
+        "线性",
+        "场计算"
+      ],
+      "conditions": [
+        "控制方程及介质响应为线性"
+      ],
+      "details": {
+        "definition": "在控制方程与介质响应线性的条件下，多组源共同产生的场等于各组源单独产生的场的矢量和。",
+        "key_points": [
+          "连续电荷或电流分布的场可由源元积分求得",
+          "满足同一线性边值问题的解可以按边界条件进行组合"
+        ],
+        "common_misconceptions": [
+          "非线性介质中不能直接按线性叠加计算总场"
+        ]
+      }
+    },
+    {
+      "id": "charge-density",
+      "name": "电荷体密度",
+      "type": "quantity",
+      "chapter_id": "electrostatic-field",
+      "summary": "单位体积内的电荷量，用于表示空间中的电荷分布。",
+      "aliases": [
+        "体电荷密度",
+        "体密度"
+      ],
+      "tags": [
+        "电荷",
+        "场源"
+      ],
+      "conditions": [],
+      "details": {
+        "symbol": "ρ",
+        "unit": "C/m³",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "polarization-vector",
+      "name": "极化强度",
+      "type": "quantity",
+      "chapter_id": "electrostatic-field",
+      "summary": "单位体积内电偶极矩的矢量和，描述介质极化程度。",
+      "aliases": [
+        "极化矢量",
+        "电极化强度"
+      ],
+      "tags": [
+        "介质",
+        "电偶极矩"
+      ],
+      "conditions": [],
+      "details": {
+        "symbol": "P",
+        "unit": "C/m²",
+        "dimension": null,
+        "value_kind": "vector"
+      }
+    },
+    {
+      "id": "electric-displacement-polarization-relation",
+      "name": "电位移与极化强度关系",
+      "type": "formula",
+      "chapter_id": "electrostatic-field",
+      "summary": "将真空电场贡献与介质极化贡献合并为电位移矢量。",
+      "aliases": [],
+      "tags": [
+        "极化",
+        "介质",
+        "本构关系"
+      ],
+      "conditions": [
+        "宏观连续介质描述"
+      ],
+      "details": {
+        "latex": "\\mathbf{D}=\\varepsilon_0\\mathbf{E}+\\mathbf{P}",
+        "plain_text": "D = ε₀E + P",
+        "variables": [
+          {
+            "symbol": "D",
+            "name": "电位移矢量",
+            "quantity_id": "electric-displacement",
+            "unit": "C/m²",
+            "description": "宏观电位移矢量。"
+          },
+          {
+            "symbol": "E",
+            "name": "电场强度",
+            "quantity_id": "electric-field-intensity",
+            "unit": "V/m",
+            "description": "介质中的宏观电场强度。"
+          },
+          {
+            "symbol": "P",
+            "name": "极化强度",
+            "quantity_id": "polarization-vector",
+            "unit": "C/m²",
+            "description": "单位体积内的电偶极矩。"
+          },
+          {
+            "symbol": "ε₀",
+            "name": "真空介电常数",
+            "quantity_id": null,
+            "unit": "F/m",
+            "description": "真空中的介电常数。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "dielectric-gauss-law-integral",
+      "name": "介质中的高斯定律积分形式",
+      "type": "formula",
+      "chapter_id": "electrostatic-field",
+      "summary": "闭合曲面的电位移通量等于曲面内的自由电荷量。",
+      "aliases": [
+        "电位移高斯定律"
+      ],
+      "tags": [
+        "自由电荷",
+        "通量",
+        "介质"
+      ],
+      "conditions": [
+        "积分曲面闭合，面元采用外法向"
+      ],
+      "details": {
+        "latex": "\\oint_S\\mathbf{D}\\cdot d\\mathbf{S}=Q_{\\mathrm{f}}",
+        "plain_text": "∮ D · dS = Q_f",
+        "variables": [
+          {
+            "symbol": "D",
+            "name": "电位移矢量",
+            "quantity_id": "electric-displacement",
+            "unit": "C/m²",
+            "description": "闭合曲面上的电位移矢量。"
+          },
+          {
+            "symbol": "Q_f",
+            "name": "自由电荷量",
+            "quantity_id": null,
+            "unit": "C",
+            "description": "闭合曲面所包围的自由电荷代数和。"
+          },
+          {
+            "symbol": "S",
+            "name": "闭合积分曲面",
+            "quantity_id": null,
+            "unit": "m²",
+            "description": "包围所考察体积的曲面，面元法向取外法向。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "conductor-electrostatic-equilibrium",
+      "name": "导体静电平衡",
+      "type": "concept",
+      "chapter_id": "electrostatic-field",
+      "summary": "导体中的自由电荷停止宏观定向运动时的静电状态。",
+      "aliases": [
+        "静电平衡"
+      ],
+      "tags": [
+        "导体",
+        "等位体",
+        "表面电荷"
+      ],
+      "conditions": [
+        "导体已达到静电平衡，内部无持续传导电流"
+      ],
+      "details": {
+        "definition": "导体达到静电平衡时，内部电场为零，同一连通导体的电位处处相同。",
+        "key_points": [
+          "导体表面的静电场没有切向分量",
+          "均匀导体的净过剩电荷分布在表面，含空腔时还需考虑内表面电荷",
+          "导体表面的法向电位移由自由面电荷决定"
+        ],
+        "common_misconceptions": [
+          "导体内部电场为零并不意味着导体电位为零，接地才固定其参考电位"
+        ]
+      }
+    },
+    {
+      "id": "electrostatic-energy-density",
+      "name": "静电场能量密度",
+      "type": "formula",
+      "chapter_id": "electrostatic-field",
+      "summary": "计算线性介质中单位体积储存的电场能量。",
+      "aliases": [],
+      "tags": [
+        "电场",
+        "能量",
+        "储能"
+      ],
+      "conditions": [
+        "线性、无色散介质，储能过程可逆",
+        "写成 ε|E|²/2 时介质各向同性"
+      ],
+      "details": {
+        "latex": "w_{\\mathrm{e}}=\\frac{1}{2}\\mathbf{E}\\cdot\\mathbf{D}=\\frac{1}{2}\\varepsilon|\\mathbf{E}|^2",
+        "plain_text": "w_e = E · D / 2 = ε|E|² / 2",
+        "variables": [
+          {
+            "symbol": "w_e",
+            "name": "电场能量密度",
+            "quantity_id": null,
+            "unit": "J/m³",
+            "description": "单位体积内储存的电场能量。"
+          },
+          {
+            "symbol": "E",
+            "name": "电场强度",
+            "quantity_id": "electric-field-intensity",
+            "unit": "V/m",
+            "description": "电场强度。"
+          },
+          {
+            "symbol": "D",
+            "name": "电位移矢量",
+            "quantity_id": "electric-displacement",
+            "unit": "C/m²",
+            "description": "电位移矢量。"
+          },
+          {
+            "symbol": "ε",
+            "name": "介电常数",
+            "quantity_id": "permittivity",
+            "unit": "F/m",
+            "description": "线性各向同性介质的介电常数。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "capacitance-definition",
+      "name": "电容定义式",
+      "type": "formula",
+      "chapter_id": "electrostatic-field",
+      "summary": "用两导体间的电荷量与电位差定义电容。",
+      "aliases": [],
+      "tags": [
+        "电容",
+        "电位差"
+      ],
+      "conditions": [
+        "固定几何结构的两导体系统，介质响应为线性"
+      ],
+      "details": {
+        "latex": "C=\\frac{Q}{U}",
+        "plain_text": "C = Q / U",
+        "variables": [
+          {
+            "symbol": "C",
+            "name": "电容",
+            "quantity_id": "capacitance",
+            "unit": "F",
+            "description": "两导体系统的电容。"
+          },
+          {
+            "symbol": "Q",
+            "name": "极板电荷量",
+            "quantity_id": null,
+            "unit": "C",
+            "description": "两导体带等量异号电荷时正极板的电荷量。"
+          },
+          {
+            "symbol": "U",
+            "name": "极板间电位差",
+            "quantity_id": null,
+            "unit": "V",
+            "description": "正极板相对负极板的电位差。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "parallel-plate-capacitance",
+      "name": "平行板电容公式",
+      "type": "formula",
+      "chapter_id": "electrostatic-field",
+      "summary": "通过极板面积、间距和介电常数计算平行板电容。",
+      "aliases": [],
+      "tags": [
+        "电容器",
+        "平行板"
+      ],
+      "conditions": [
+        "极板间距远小于横向尺寸，忽略边缘效应",
+        "板间均匀填充线性各向同性介质"
+      ],
+      "details": {
+        "latex": "C=\\frac{\\varepsilon A}{d}",
+        "plain_text": "C = εA / d",
+        "variables": [
+          {
+            "symbol": "C",
+            "name": "电容",
+            "quantity_id": "capacitance",
+            "unit": "F",
+            "description": "平行板电容器的电容。"
+          },
+          {
+            "symbol": "ε",
+            "name": "介电常数",
+            "quantity_id": "permittivity",
+            "unit": "F/m",
+            "description": "均匀填充板间的介质介电常数。"
+          },
+          {
+            "symbol": "A",
+            "name": "极板有效面积",
+            "quantity_id": null,
+            "unit": "m²",
+            "description": "两平行极板的有效重叠面积。"
+          },
+          {
+            "symbol": "d",
+            "name": "极板间距",
+            "quantity_id": null,
+            "unit": "m",
+            "description": "两极板之间的垂直距离。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "steady-current-field",
+      "name": "恒定电流场",
+      "type": "concept",
+      "chapter_id": "constant-current-field",
+      "summary": "电流分布和电荷分布不随时间变化的传导场。",
+      "aliases": [
+        "稳恒电流场"
+      ],
+      "tags": [
+        "传导电流",
+        "电荷守恒"
+      ],
+      "conditions": [
+        "宏观电流与电荷分布不随时间变化"
+      ],
+      "details": {
+        "definition": "在恒定电流场中，电流密度和电荷分布对时间的偏导数为零，电荷不会在任意体积内持续积累。",
+        "key_points": [
+          "电流密度满足 ∇·J = 0",
+          "在固定且磁场不随时间变化的系统中，电场仍为无旋场",
+          "导体内部有电场维持电流，常用 J = σE 描述"
+        ],
+        "common_misconceptions": [
+          "恒定电流场中的导体内部电场一般不为零，与导体静电平衡不同"
+        ]
+      }
+    },
+    {
+      "id": "electric-current",
+      "name": "电流",
+      "type": "quantity",
+      "chapter_id": "constant-current-field",
+      "summary": "单位时间内通过定向曲面的净电荷量。",
+      "aliases": [
+        "电流强度"
+      ],
+      "tags": [
+        "传导",
+        "电荷运动"
+      ],
+      "conditions": [],
+      "details": {
+        "symbol": "I",
+        "unit": "A",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "charge-conservation-law",
+      "name": "电荷守恒定律",
+      "type": "law",
+      "chapter_id": "constant-current-field",
+      "summary": "电荷总量守恒，区域内电荷变化由穿过边界的电流决定。",
+      "aliases": [
+        "电荷守恒"
+      ],
+      "tags": [
+        "电流",
+        "连续性方程"
+      ],
+      "conditions": [],
+      "details": {
+        "definition": "电荷不能凭空产生或消失；固定区域内电荷增加率等于流入该区域的净电流。",
+        "key_points": [
+          "局部形式是电流连续性方程",
+          "恒定状态下流入一个节点的电流之和等于流出电流之和",
+          "麦克斯韦-安培方程中的位移电流项使该方程与电荷守恒相容"
+        ],
+        "common_misconceptions": [
+          "某一区域内电荷可以变化，守恒要求同时计入穿过区域边界的电荷输运"
+        ]
+      }
+    },
+    {
+      "id": "current-density-integral",
+      "name": "电流与电流密度关系",
+      "type": "formula",
+      "chapter_id": "constant-current-field",
+      "summary": "对曲面上的电流密度法向分量积分得到总电流。",
+      "aliases": [],
+      "tags": [
+        "电流密度",
+        "面积分"
+      ],
+      "conditions": [
+        "采用宏观连续电流密度描述，并指定曲面法向"
+      ],
+      "details": {
+        "latex": "I=\\int_S\\mathbf{J}\\cdot d\\mathbf{S}",
+        "plain_text": "I = ∫ J · dS",
+        "variables": [
+          {
+            "symbol": "I",
+            "name": "电流",
+            "quantity_id": "electric-current",
+            "unit": "A",
+            "description": "按曲面法向确定正方向的电流。"
+          },
+          {
+            "symbol": "J",
+            "name": "电流密度",
+            "quantity_id": "current-density",
+            "unit": "A/m²",
+            "description": "曲面上各点的电流密度。"
+          },
+          {
+            "symbol": "S",
+            "name": "积分曲面",
+            "quantity_id": null,
+            "unit": "m²",
+            "description": "电荷穿过的定向曲面。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "steady-current-boundary-conditions",
+      "name": "恒定电流场边界条件",
+      "type": "law",
+      "chapter_id": "constant-current-field",
+      "summary": "稳恒导电介质分界面上法向电流密度和切向电场满足连续条件。",
+      "aliases": [],
+      "tags": [
+        "界面",
+        "连续性",
+        "导电介质"
+      ],
+      "conditions": [
+        "稳恒电流、磁场不随时间变化",
+        "界面无表面电流层及表面电荷积累"
+      ],
+      "details": {
+        "definition": "在无表面电荷持续积累、无表面电流层的稳恒导电界面，J 的法向分量连续；磁场不随时间变化时 E 的切向分量连续。",
+        "key_points": [
+          "J₁n = J₂n 来自电荷守恒",
+          "E₁t = E₂t 来自电场无旋性",
+          "不同电导率介质中的电场法向分量一般不同"
+        ],
+        "common_misconceptions": [
+          "电流密度的所有分量并不都连续；切向电流密度会随电导率改变"
+        ]
+      }
+    },
+    {
+      "id": "electrical-resistance",
+      "name": "电阻",
+      "type": "quantity",
+      "chapter_id": "constant-current-field",
+      "summary": "描述导体阻碍电流能力的两端口参数。",
+      "aliases": [],
+      "tags": [
+        "导体",
+        "欧姆定律"
+      ],
+      "conditions": [
+        "线性欧姆导体，温度及几何结构固定"
+      ],
+      "details": {
+        "symbol": "R",
+        "unit": "Ω",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "uniform-conductor-resistance",
+      "name": "均匀导体电阻公式",
+      "type": "formula",
+      "chapter_id": "constant-current-field",
+      "summary": "根据导体长度、截面积和电导率计算直流电阻。",
+      "aliases": [],
+      "tags": [
+        "电阻",
+        "导体",
+        "直流"
+      ],
+      "conditions": [
+        "均匀、各向同性欧姆导体，截面积恒定",
+        "电流密度近似均匀，忽略接触电阻与端部效应"
+      ],
+      "details": {
+        "latex": "R=\\frac{\\ell}{\\sigma A}",
+        "plain_text": "R = ℓ / (σA)",
+        "variables": [
+          {
+            "symbol": "R",
+            "name": "电阻",
+            "quantity_id": "electrical-resistance",
+            "unit": "Ω",
+            "description": "导体的直流电阻。"
+          },
+          {
+            "symbol": "σ",
+            "name": "电导率",
+            "quantity_id": "conductivity",
+            "unit": "S/m",
+            "description": "均匀导体的电导率。"
+          },
+          {
+            "symbol": "ℓ",
+            "name": "导体长度",
+            "quantity_id": null,
+            "unit": "m",
+            "description": "沿电流方向的长度。"
+          },
+          {
+            "symbol": "A",
+            "name": "导体截面积",
+            "quantity_id": null,
+            "unit": "m²",
+            "description": "垂直电流方向的均匀截面积。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "resistor",
+      "name": "电阻器",
+      "type": "application",
+      "chapter_id": "constant-current-field",
+      "summary": "利用导体电阻限制电流、分配电压并将电能转化为热。",
+      "aliases": [],
+      "tags": [
+        "电路元件",
+        "焦耳热"
+      ],
+      "conditions": [],
+      "details": {
+        "scenario": "依据导电材料、几何尺寸和散热条件设计电阻元件，计算其电阻与功率损耗。",
+        "key_parameters": [
+          "电阻值",
+          "额定功率",
+          "材料电导率",
+          "长度与截面积",
+          "温度系数"
+        ]
+      }
+    },
+    {
+      "id": "ohm-law",
+      "name": "欧姆定律",
+      "type": "law",
+      "chapter_id": "constant-current-field",
+      "summary": "在线性欧姆导体中描述电流对电场或电压的响应。",
+      "aliases": [],
+      "tags": [
+        "导电",
+        "电阻",
+        "电场"
+      ],
+      "conditions": [
+        "线性欧姆导体，温度及材料状态固定"
+      ],
+      "details": {
+        "definition": "在给定温度的欧姆导体中，电流密度与电场强度成正比；对应的线性电阻元件满足 U = RI。",
+        "key_points": [
+          "局部关系为 J = σE",
+          "均匀导体的场关系可积分为端口电压与电流关系",
+          "电导率描述材料性质，电阻还取决于几何结构"
+        ],
+        "common_misconceptions": [
+          "非线性器件或强烈温升情况下，电阻不能始终视为常数"
+        ]
+      }
+    },
+    {
+      "id": "magnetic-flux",
+      "name": "磁通量",
+      "type": "quantity",
+      "chapter_id": "constant-magnetic-field",
+      "summary": "磁感应强度穿过定向曲面的通量，等于 B 的面积分。",
+      "aliases": [
+        "磁通"
+      ],
+      "tags": [
+        "磁场",
+        "通量"
+      ],
+      "conditions": [],
+      "details": {
+        "symbol": "Φ_B",
+        "unit": "Wb",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "magnetization-vector",
+      "name": "磁化强度",
+      "type": "quantity",
+      "chapter_id": "constant-magnetic-field",
+      "summary": "单位体积内磁偶极矩的矢量和，描述材料的磁化程度。",
+      "aliases": [
+        "磁化矢量"
+      ],
+      "tags": [
+        "磁介质",
+        "磁偶极矩"
+      ],
+      "conditions": [],
+      "details": {
+        "symbol": "M",
+        "unit": "A/m",
+        "dimension": null,
+        "value_kind": "vector"
+      }
+    },
+    {
+      "id": "magnetization",
+      "name": "磁化",
+      "type": "concept",
+      "chapter_id": "constant-magnetic-field",
+      "summary": "材料内部磁偶极矩排列或大小改变所形成的宏观磁响应。",
+      "aliases": [],
+      "tags": [
+        "磁介质",
+        "材料响应",
+        "磁偶极矩"
+      ],
+      "conditions": [],
+      "details": {
+        "definition": "磁化是材料内部磁偶极矩形成宏观合成效应的现象，通常用单位体积磁偶极矩即磁化强度 M 描述。",
+        "key_points": [
+          "宏观场量满足 B = μ₀(H + M)",
+          "线性各向同性材料中可用 M = χ_m H 描述磁化响应",
+          "铁磁材料的磁化可表现出非线性和磁滞"
+        ],
+        "common_misconceptions": [
+          "磁化强度 M 与磁场强度 H 是不同的物理量，虽然单位同为 A/m"
+        ]
+      }
+    },
+    {
+      "id": "magnetic-constitutive-relation",
+      "name": "磁感应强度与磁化强度关系",
+      "type": "formula",
+      "chapter_id": "constant-magnetic-field",
+      "summary": "将磁场强度与材料磁化的贡献合并为磁感应强度。",
+      "aliases": [],
+      "tags": [
+        "磁化",
+        "本构关系"
+      ],
+      "conditions": [
+        "宏观连续介质描述"
+      ],
+      "details": {
+        "latex": "\\mathbf{B}=\\mu_0(\\mathbf{H}+\\mathbf{M})",
+        "plain_text": "B = μ₀(H + M)",
+        "variables": [
+          {
+            "symbol": "B",
+            "name": "磁感应强度",
+            "quantity_id": "magnetic-flux-density",
+            "unit": "T",
+            "description": "宏观磁感应强度。"
+          },
+          {
+            "symbol": "H",
+            "name": "磁场强度",
+            "quantity_id": "magnetic-field-intensity",
+            "unit": "A/m",
+            "description": "宏观磁场强度。"
+          },
+          {
+            "symbol": "M",
+            "name": "磁化强度",
+            "quantity_id": "magnetization-vector",
+            "unit": "A/m",
+            "description": "单位体积内的磁偶极矩。"
+          },
+          {
+            "symbol": "μ₀",
+            "name": "真空磁导率",
+            "quantity_id": null,
+            "unit": "H/m",
+            "description": "真空中的磁导率。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lorentz-force-law",
+      "name": "洛伦兹力定律",
+      "type": "law",
+      "chapter_id": "constant-magnetic-field",
+      "summary": "运动点电荷受到电场力与磁场力的合力。",
+      "aliases": [
+        "洛伦兹力"
+      ],
+      "tags": [
+        "带电粒子",
+        "电场力",
+        "磁场力"
+      ],
+      "conditions": [
+        "经典点电荷模型，E 和 B 为外加场"
+      ],
+      "details": {
+        "definition": "在电场 E 和磁感应强度 B 中，以速度 v 运动的点电荷 q 受到的力为 q(E + v × B)。",
+        "key_points": [
+          "电场力可沿速度方向分量做功",
+          "磁场力与瞬时速度垂直，不直接改变粒子的动能",
+          "磁场力的方向取决于速度、磁场方向和电荷正负"
+        ],
+        "common_misconceptions": [
+          "磁场力应使用磁感应强度 B；不能直接将 B 替换为 H"
+        ]
+      }
+    },
+    {
+      "id": "lorentz-force-formula",
+      "name": "洛伦兹力公式",
+      "type": "formula",
+      "chapter_id": "constant-magnetic-field",
+      "summary": "计算带电粒子在给定电场和磁场中的瞬时受力。",
+      "aliases": [],
+      "tags": [
+        "洛伦兹力",
+        "叉积"
+      ],
+      "conditions": [
+        "经典点电荷模型，忽略自场与辐射反作用"
+      ],
+      "details": {
+        "latex": "\\mathbf{F}=q(\\mathbf{E}+\\mathbf{v}\\times\\mathbf{B})",
+        "plain_text": "F = q(E + v × B)",
+        "variables": [
+          {
+            "symbol": "F",
+            "name": "电磁力",
+            "quantity_id": null,
+            "unit": "N",
+            "description": "电场力与磁场力的合力。"
+          },
+          {
+            "symbol": "q",
+            "name": "粒子电荷量",
+            "quantity_id": null,
+            "unit": "C",
+            "description": "带正负号的粒子电荷量。"
+          },
+          {
+            "symbol": "E",
+            "name": "电场强度",
+            "quantity_id": "electric-field-intensity",
+            "unit": "V/m",
+            "description": "粒子所在位置的外加电场强度。"
+          },
+          {
+            "symbol": "v",
+            "name": "粒子速度",
+            "quantity_id": null,
+            "unit": "m/s",
+            "description": "粒子的瞬时运动速度。"
+          },
+          {
+            "symbol": "B",
+            "name": "磁感应强度",
+            "quantity_id": "magnetic-flux-density",
+            "unit": "T",
+            "description": "粒子所在位置的外加磁感应强度。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "biot-savart-law-formula",
+      "name": "毕奥-萨伐尔定律公式",
+      "type": "formula",
+      "chapter_id": "constant-magnetic-field",
+      "summary": "对恒定载流细导线积分，计算真空中的磁感应强度。",
+      "aliases": [],
+      "tags": [
+        "电流元",
+        "磁场计算"
+      ],
+      "conditions": [
+        "真空中的恒定电流",
+        "细导线近似，沿完整闭合载流路径积分"
+      ],
+      "details": {
+        "latex": "\\mathbf{B}(\\mathbf{r})=\\frac{\\mu_0 I}{4\\pi}\\oint_C\\frac{d\\boldsymbol{\\ell}'\\times\\hat{\\mathbf{R}}}{R^2}",
+        "plain_text": "B(r) = μ₀I/(4π) ∮ (dl′ × R̂)/R²",
+        "variables": [
+          {
+            "symbol": "B",
+            "name": "磁感应强度",
+            "quantity_id": "magnetic-flux-density",
+            "unit": "T",
+            "description": "观察点处的磁感应强度。"
+          },
+          {
+            "symbol": "I",
+            "name": "电流",
+            "quantity_id": "electric-current",
+            "unit": "A",
+            "description": "沿积分路径方向的恒定电流。"
+          },
+          {
+            "symbol": "μ₀",
+            "name": "真空磁导率",
+            "quantity_id": null,
+            "unit": "H/m",
+            "description": "真空中的磁导率。"
+          },
+          {
+            "symbol": "dℓ′",
+            "name": "电流线元",
+            "quantity_id": null,
+            "unit": "m",
+            "description": "沿电流方向的有向线元。"
+          },
+          {
+            "symbol": "R",
+            "name": "源点至观察点距离",
+            "quantity_id": null,
+            "unit": "m",
+            "description": "R = |r − r′|，R̂ 从源点指向观察点。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "magnetic-energy-density",
+      "name": "磁场能量密度",
+      "type": "formula",
+      "chapter_id": "constant-magnetic-field",
+      "summary": "计算线性磁介质中单位体积储存的磁场能量。",
+      "aliases": [],
+      "tags": [
+        "磁场",
+        "能量",
+        "储能"
+      ],
+      "conditions": [
+        "线性、无色散磁介质，无磁滞，储能过程可逆",
+        "写成 μ|H|²/2 时介质各向同性"
+      ],
+      "details": {
+        "latex": "w_{\\mathrm{m}}=\\frac{1}{2}\\mathbf{B}\\cdot\\mathbf{H}=\\frac{1}{2}\\mu|\\mathbf{H}|^2",
+        "plain_text": "w_m = B · H / 2 = μ|H|² / 2",
+        "variables": [
+          {
+            "symbol": "w_m",
+            "name": "磁场能量密度",
+            "quantity_id": null,
+            "unit": "J/m³",
+            "description": "单位体积内储存的磁场能量。"
+          },
+          {
+            "symbol": "B",
+            "name": "磁感应强度",
+            "quantity_id": "magnetic-flux-density",
+            "unit": "T",
+            "description": "磁感应强度。"
+          },
+          {
+            "symbol": "H",
+            "name": "磁场强度",
+            "quantity_id": "magnetic-field-intensity",
+            "unit": "A/m",
+            "description": "磁场强度。"
+          },
+          {
+            "symbol": "μ",
+            "name": "磁导率",
+            "quantity_id": "permeability",
+            "unit": "H/m",
+            "description": "线性各向同性介质的磁导率。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inductance-definition",
+      "name": "自感系数定义式",
+      "type": "formula",
+      "chapter_id": "constant-magnetic-field",
+      "summary": "用线圈自身电流产生的磁链与电流之比定义自感系数。",
+      "aliases": [
+        "电感定义式"
+      ],
+      "tags": [
+        "线圈",
+        "磁链",
+        "自感"
+      ],
+      "conditions": [
+        "固定几何结构，磁路响应为线性",
+        "Ψ = NΦ_B 要求各匝交链磁通相同"
+      ],
+      "details": {
+        "latex": "L=\\frac{\\Psi}{I},\\qquad \\Psi=N\\Phi_B",
+        "plain_text": "L = Ψ / I，Ψ = NΦ_B",
+        "variables": [
+          {
+            "symbol": "L",
+            "name": "电感",
+            "quantity_id": "inductance",
+            "unit": "H",
+            "description": "线圈的自感系数。"
+          },
+          {
+            "symbol": "Ψ",
+            "name": "磁链",
+            "quantity_id": null,
+            "unit": "Wb",
+            "description": "各匝磁通的总和；各匝磁通相同时 Ψ = NΦ_B。"
+          },
+          {
+            "symbol": "I",
+            "name": "电流",
+            "quantity_id": "electric-current",
+            "unit": "A",
+            "description": "产生自身磁通的线圈电流。"
+          },
+          {
+            "symbol": "N",
+            "name": "线圈匝数",
+            "quantity_id": null,
+            "unit": "1",
+            "description": "线圈的总匝数。"
+          },
+          {
+            "symbol": "Φ_B",
+            "name": "磁通量",
+            "quantity_id": "magnetic-flux",
+            "unit": "Wb",
+            "description": "每匝交链的磁通量。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "electromotive-force",
+      "name": "电动势",
+      "type": "quantity",
+      "chapter_id": "time-varying-field",
+      "summary": "回路中单位电荷获得的驱动能量，单位为伏特。",
+      "aliases": [
+        "感应电动势"
+      ],
+      "tags": [
+        "回路",
+        "电磁感应",
+        "电源"
+      ],
+      "conditions": [],
+      "details": {
+        "symbol": "ℰ",
+        "unit": "V",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "displacement-current-density",
+      "name": "位移电流密度",
+      "type": "quantity",
+      "chapter_id": "time-varying-field",
+      "summary": "电位移矢量对时间的变化率，是麦克斯韦-安培方程中的电流密度项。",
+      "aliases": [],
+      "tags": [
+        "位移电流",
+        "时变场"
+      ],
+      "conditions": [],
+      "details": {
+        "symbol": "J_d",
+        "unit": "A/m²",
+        "dimension": null,
+        "value_kind": "vector"
+      }
+    },
+    {
+      "id": "displacement-current-density-formula",
+      "name": "位移电流密度公式",
+      "type": "formula",
+      "chapter_id": "time-varying-field",
+      "summary": "由电位移矢量的时间变化计算位移电流密度。",
+      "aliases": [],
+      "tags": [
+        "位移电流",
+        "时间变化"
+      ],
+      "conditions": [
+        "采用宏观电磁场描述"
+      ],
+      "details": {
+        "latex": "\\mathbf{J}_{\\mathrm{d}}=\\frac{\\partial\\mathbf{D}}{\\partial t}",
+        "plain_text": "J_d = ∂D/∂t",
+        "variables": [
+          {
+            "symbol": "J_d",
+            "name": "位移电流密度",
+            "quantity_id": "displacement-current-density",
+            "unit": "A/m²",
+            "description": "位移电流密度。"
+          },
+          {
+            "symbol": "D",
+            "name": "电位移矢量",
+            "quantity_id": "electric-displacement",
+            "unit": "C/m²",
+            "description": "随时间变化的电位移矢量。"
+          },
+          {
+            "symbol": "t",
+            "name": "时间",
+            "quantity_id": null,
+            "unit": "s",
+            "description": "观察时刻。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "maxwell-ampere-integral-form",
+      "name": "麦克斯韦-安培定律积分形式",
+      "type": "formula",
+      "chapter_id": "time-varying-field",
+      "summary": "磁场环量由穿过回路曲面的自由电流与电位移通量变化共同决定。",
+      "aliases": [
+        "全电流定律积分形式"
+      ],
+      "tags": [
+        "环量",
+        "位移电流"
+      ],
+      "conditions": [
+        "回路和所张曲面固定，取向满足右手关系"
+      ],
+      "details": {
+        "latex": "\\oint_C\\mathbf{H}\\cdot d\\boldsymbol{\\ell}=\\int_S\\mathbf{J}\\cdot d\\mathbf{S}+\\frac{d}{dt}\\int_S\\mathbf{D}\\cdot d\\mathbf{S}",
+        "plain_text": "∮ H · dl = ∫ J · dS + d/dt ∫ D · dS",
+        "variables": [
+          {
+            "symbol": "H",
+            "name": "磁场强度",
+            "quantity_id": "magnetic-field-intensity",
+            "unit": "A/m",
+            "description": "闭合回路上的磁场强度。"
+          },
+          {
+            "symbol": "J",
+            "name": "电流密度",
+            "quantity_id": "current-density",
+            "unit": "A/m²",
+            "description": "穿过曲面的自由电流密度。"
+          },
+          {
+            "symbol": "D",
+            "name": "电位移矢量",
+            "quantity_id": "electric-displacement",
+            "unit": "C/m²",
+            "description": "曲面上的电位移矢量。"
+          },
+          {
+            "symbol": "t",
+            "name": "时间",
+            "quantity_id": null,
+            "unit": "s",
+            "description": "观察时刻。"
+          },
+          {
+            "symbol": "S",
+            "name": "回路所张曲面",
+            "quantity_id": null,
+            "unit": "m²",
+            "description": "以 C 为边界，法向与回路方向满足右手关系。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "electromagnetic-boundary-conditions",
+      "name": "电磁场边界条件",
+      "type": "law",
+      "chapter_id": "time-varying-field",
+      "summary": "用界面自由面电荷和面电流确定电磁场分量的连续或跃变关系。",
+      "aliases": [
+        "电磁场界面条件"
+      ],
+      "tags": [
+        "界面",
+        "面电荷",
+        "面电流"
+      ],
+      "conditions": [
+        "固定界面，场量分段光滑且有限",
+        "采用标准麦克斯韦方程，不引入磁荷或磁流"
+      ],
+      "details": {
+        "definition": "法向 n 从介质 1 指向介质 2 时，n·(D₂−D₁)=ρ_sf，n·(B₂−B₁)=0，n×(E₂−E₁)=0，n×(H₂−H₁)=K_f。",
+        "key_points": [
+          "电位移法向跃变由自由面电荷决定",
+          "磁场强度切向跃变由自由面电流决定",
+          "没有自由面电荷或面电流时，相应分量连续"
+        ],
+        "common_misconceptions": [
+          "界面上的 E、D、B、H 并非所有分量都连续；应分别判断法向和切向条件"
+        ]
+      }
+    },
+    {
+      "id": "poynting-theorem-differential-form",
+      "name": "坡印廷定理微分形式",
+      "type": "formula",
+      "chapter_id": "time-varying-field",
+      "summary": "用能流散度、场储能变化和电场对电流做功表达局部能量守恒。",
+      "aliases": [],
+      "tags": [
+        "电磁能量",
+        "能量守恒",
+        "场储能"
+      ],
+      "conditions": [
+        "静止、线性、无色散介质，ε 和 μ 不随时间变化",
+        "无磁滞或其他不可逆极化损耗"
+      ],
+      "details": {
+        "latex": "\\nabla\\cdot\\mathbf{S}+\\frac{\\partial w}{\\partial t}+\\mathbf{J}\\cdot\\mathbf{E}=0,\\qquad w=\\frac{1}{2}(\\mathbf{E}\\cdot\\mathbf{D}+\\mathbf{B}\\cdot\\mathbf{H})",
+        "plain_text": "∇ · S + ∂w/∂t + J · E = 0，w = (E · D + B · H)/2",
+        "variables": [
+          {
+            "symbol": "S",
+            "name": "坡印廷矢量",
+            "quantity_id": "poynting-vector",
+            "unit": "W/m²",
+            "description": "电磁能流密度。"
+          },
+          {
+            "symbol": "w",
+            "name": "电磁场能量密度",
+            "quantity_id": null,
+            "unit": "J/m³",
+            "description": "电场与磁场能量密度之和。"
+          },
+          {
+            "symbol": "t",
+            "name": "时间",
+            "quantity_id": null,
+            "unit": "s",
+            "description": "观察时刻。"
+          },
+          {
+            "symbol": "J",
+            "name": "电流密度",
+            "quantity_id": "current-density",
+            "unit": "A/m²",
+            "description": "自由电流密度，J·E 是单位体积内场对电荷做功的功率。"
+          },
+          {
+            "symbol": "E",
+            "name": "电场强度",
+            "quantity_id": "electric-field-intensity",
+            "unit": "V/m",
+            "description": "电场强度。"
+          },
+          {
+            "symbol": "D",
+            "name": "电位移矢量",
+            "quantity_id": "electric-displacement",
+            "unit": "C/m²",
+            "description": "电位移矢量。"
+          },
+          {
+            "symbol": "B",
+            "name": "磁感应强度",
+            "quantity_id": "magnetic-flux-density",
+            "unit": "T",
+            "description": "磁感应强度。"
+          },
+          {
+            "symbol": "H",
+            "name": "磁场强度",
+            "quantity_id": "magnetic-field-intensity",
+            "unit": "A/m",
+            "description": "磁场强度。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "phasor-method",
+      "name": "相量法",
+      "type": "method",
+      "chapter_id": "time-varying-field",
+      "summary": "在正弦稳态下用复数幅值表示场量，将时间微分变为代数运算。",
+      "aliases": [
+        "复数相量法"
+      ],
+      "tags": [
+        "时谐",
+        "正弦稳态",
+        "相位"
+      ],
+      "conditions": [
+        "线性系统，同一角频率的正弦稳态",
+        "整个计算过程采用一致的时间因子约定"
+      ],
+      "details": {
+        "purpose": "求解线性系统中的时谐电磁场，简化幅值与相位的计算。",
+        "steps": [
+          "统一采用 e^{jωt} 时间因子，将实际场写成复相量与时间因子乘积的实部",
+          "将时间微分 ∂/∂t 替换为 jω",
+          "在复数域求解场方程并施加边界条件",
+          "用 Re{场相量·e^{jωt}} 还原瞬时场"
+        ]
+      }
+    },
+    {
+      "id": "time-harmonic-maxwell-curl-equations",
+      "name": "时谐麦克斯韦旋度方程",
+      "type": "formula",
+      "chapter_id": "time-varying-field",
+      "summary": "采用 e^{jωt} 时间约定，将两条旋度方程写成频域形式。",
+      "aliases": [],
+      "tags": [
+        "相量",
+        "麦克斯韦方程",
+        "频域"
+      ],
+      "conditions": [
+        "采用 e^{jωt} 时间因子",
+        "线性各向同性介质，传导电流为 σE，无外加源电流"
+      ],
+      "details": {
+        "latex": "\\nabla\\times\\widetilde{\\mathbf{E}}=-j\\omega\\mu\\widetilde{\\mathbf{H}},\\qquad \\nabla\\times\\widetilde{\\mathbf{H}}=(\\sigma+j\\omega\\varepsilon)\\widetilde{\\mathbf{E}}",
+        "plain_text": "∇ × Ẽ = −jωμH̃，∇ × H̃ = (σ + jωε)Ẽ",
+        "variables": [
+          {
+            "symbol": "Ẽ",
+            "name": "电场强度",
+            "quantity_id": "electric-field-intensity",
+            "unit": "V/m",
+            "description": "电场强度的复相量。"
+          },
+          {
+            "symbol": "H̃",
+            "name": "磁场强度",
+            "quantity_id": "magnetic-field-intensity",
+            "unit": "A/m",
+            "description": "磁场强度的复相量。"
+          },
+          {
+            "symbol": "μ",
+            "name": "磁导率",
+            "quantity_id": "permeability",
+            "unit": "H/m",
+            "description": "介质磁导率。"
+          },
+          {
+            "symbol": "ε",
+            "name": "介电常数",
+            "quantity_id": "permittivity",
+            "unit": "F/m",
+            "description": "介质介电常数。"
+          },
+          {
+            "symbol": "σ",
+            "name": "电导率",
+            "quantity_id": "conductivity",
+            "unit": "S/m",
+            "description": "介质电导率。"
+          },
+          {
+            "symbol": "ω",
+            "name": "角频率",
+            "quantity_id": null,
+            "unit": "rad/s",
+            "description": "时谐场的角频率，ω = 2πf。"
+          },
+          {
+            "symbol": "j",
+            "name": "虚数单位",
+            "quantity_id": null,
+            "unit": "1",
+            "description": "满足 j² = −1 的虚数单位。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "propagation-constant",
+      "name": "传播常数",
+      "type": "quantity",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "复数 γ = α + jβ，描述行波振幅衰减与相位随距离变化。",
+      "aliases": [
+        "复传播常数"
+      ],
+      "tags": [
+        "行波",
+        "有耗介质"
+      ],
+      "conditions": [
+        "采用 e^{jωt} 时间因子，沿 +z 传播的相量写成 e^{−γz}"
+      ],
+      "details": {
+        "symbol": "γ",
+        "unit": "m⁻¹",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "attenuation-constant",
+      "name": "衰减常数",
+      "type": "quantity",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "行波振幅按 e^{−αz} 衰减时，α 表示单位长度的指数衰减程度。",
+      "aliases": [
+        "衰减系数"
+      ],
+      "tags": [
+        "传播",
+        "损耗"
+      ],
+      "conditions": [
+        "均匀介质中的单一指数衰减行波"
+      ],
+      "details": {
+        "symbol": "α",
+        "unit": "Np/m",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "phase-constant",
+      "name": "相位常数",
+      "type": "quantity",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "描述行波相位随传播距离的变化率，满足 β = 2π/λ。",
+      "aliases": [
+        "相位系数"
+      ],
+      "tags": [
+        "相位",
+        "波长"
+      ],
+      "conditions": [],
+      "details": {
+        "symbol": "β",
+        "unit": "rad/m",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "complex-propagation-constant-formula",
+      "name": "有耗介质传播常数公式",
+      "type": "formula",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "由介电常数、磁导率、电导率及频率求均匀介质中的传播常数。",
+      "aliases": [],
+      "tags": [
+        "有耗介质",
+        "平面波",
+        "传播常数"
+      ],
+      "conditions": [
+        "均匀、线性、各向同性欧姆介质，无外加源电流",
+        "采用 e^{jωt} 和 e^{−γz} 约定",
+        "ε、μ 为正实数且 σ ≥ 0，平方根取 α ≥ 0、β ≥ 0 的分支"
+      ],
+      "details": {
+        "latex": "\\gamma=\\alpha+j\\beta=\\sqrt{j\\omega\\mu(\\sigma+j\\omega\\varepsilon)}",
+        "plain_text": "γ = α + jβ = √[jωμ(σ + jωε)]",
+        "variables": [
+          {
+            "symbol": "γ",
+            "name": "传播常数",
+            "quantity_id": "propagation-constant",
+            "unit": "m⁻¹",
+            "description": "沿 +z 方向传播的复传播常数。"
+          },
+          {
+            "symbol": "α",
+            "name": "衰减常数",
+            "quantity_id": "attenuation-constant",
+            "unit": "Np/m",
+            "description": "振幅衰减常数。"
+          },
+          {
+            "symbol": "β",
+            "name": "相位常数",
+            "quantity_id": "phase-constant",
+            "unit": "rad/m",
+            "description": "相位常数。"
+          },
+          {
+            "symbol": "μ",
+            "name": "磁导率",
+            "quantity_id": "permeability",
+            "unit": "H/m",
+            "description": "介质磁导率。"
+          },
+          {
+            "symbol": "σ",
+            "name": "电导率",
+            "quantity_id": "conductivity",
+            "unit": "S/m",
+            "description": "介质电导率。"
+          },
+          {
+            "symbol": "ε",
+            "name": "介电常数",
+            "quantity_id": "permittivity",
+            "unit": "F/m",
+            "description": "介质介电常数。"
+          },
+          {
+            "symbol": "ω",
+            "name": "角频率",
+            "quantity_id": null,
+            "unit": "rad/s",
+            "description": "场的角频率。"
+          },
+          {
+            "symbol": "j",
+            "name": "虚数单位",
+            "quantity_id": null,
+            "unit": "1",
+            "description": "满足 j² = −1。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "normal-incidence-reflection-coefficient",
+      "name": "正入射电场反射系数",
+      "type": "formula",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "由两侧介质波阻抗计算界面反射电场与入射电场的相量比。",
+      "aliases": [
+        "正入射反射系数"
+      ],
+      "tags": [
+        "界面",
+        "反射",
+        "波阻抗"
+      ],
+      "conditions": [
+        "均匀各向同性介质平面界面，平面波正入射",
+        "界面无额外电流片，透射侧为半无限介质"
+      ],
+      "details": {
+        "latex": "\\Gamma=\\frac{\\widetilde E_{\\mathrm r}}{\\widetilde E_{\\mathrm i}}=\\frac{\\eta_2-\\eta_1}{\\eta_2+\\eta_1}",
+        "plain_text": "Γ = Ẽ_r / Ẽ_i = (η₂ − η₁)/(η₂ + η₁)",
+        "variables": [
+          {
+            "symbol": "Γ",
+            "name": "电场振幅反射系数",
+            "quantity_id": null,
+            "unit": "1",
+            "description": "界面处反射电场与入射电场的复相量比。"
+          },
+          {
+            "symbol": "Ẽ_r",
+            "name": "反射电场相量",
+            "quantity_id": null,
+            "unit": "V/m",
+            "description": "按与入射波相同的切向坐标取分量。"
+          },
+          {
+            "symbol": "Ẽ_i",
+            "name": "入射电场相量",
+            "quantity_id": null,
+            "unit": "V/m",
+            "description": "界面处的入射电场相量。"
+          },
+          {
+            "symbol": "η₁",
+            "name": "波阻抗",
+            "quantity_id": "wave-impedance",
+            "unit": "Ω",
+            "description": "入射侧介质 1 的波阻抗。"
+          },
+          {
+            "symbol": "η₂",
+            "name": "波阻抗",
+            "quantity_id": "wave-impedance",
+            "unit": "Ω",
+            "description": "透射侧半无限介质 2 的波阻抗。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "standing-wave",
+      "name": "驻波",
+      "type": "concept",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "反向传播的同频波叠加，使空间中出现固定的振幅极大和极小位置。",
+      "aliases": [
+        "驻波现象",
+        "行驻波"
+      ],
+      "tags": [
+        "干涉",
+        "反射",
+        "波节",
+        "波腹"
+      ],
+      "conditions": [
+        "同频、同极化的反向波叠加；纯驻波要求等幅",
+        "固定波节间距的表述采用均匀无耗介质"
+      ],
+      "details": {
+        "definition": "同频、同极化、反向传播的波叠加后，形成具有固定空间幅值分布的场；两波幅值相同时形成纯驻波。",
+        "key_points": [
+          "纯驻波的波节和波腹位置固定",
+          "无耗介质中相邻波节间距为半个波长",
+          "两波幅值不等时形成行驻波，仍有净平均能量输运"
+        ],
+        "common_misconceptions": [
+          "存在驻波分布不代表所有情况下净能流都为零；纯驻波的平均净能流才为零"
+        ]
+      }
+    },
+    {
+      "id": "standing-wave-ratio",
+      "name": "驻波比",
+      "type": "quantity",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "无耗传播区域中驻波振幅最大值与最小值的比值，用于衡量反射程度。",
+      "aliases": [
+        "电压驻波比",
+        "VSWR"
+      ],
+      "tags": [
+        "反射",
+        "匹配"
+      ],
+      "conditions": [
+        "无耗传输线或无耗介质中的同极化行驻波"
+      ],
+      "details": {
+        "symbol": "SWR",
+        "unit": "1",
+        "dimension": null,
+        "value_kind": "scalar"
+      }
+    },
+    {
+      "id": "standing-wave-ratio-formula",
+      "name": "驻波比与反射系数关系",
+      "type": "formula",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "根据反射系数的模求驻波振幅最大值与最小值的比。",
+      "aliases": [],
+      "tags": [
+        "驻波",
+        "反射系数",
+        "匹配"
+      ],
+      "conditions": [
+        "均匀无耗传播区域，同频同极化的入射与反射波",
+        "无源终端且 |Γ| < 1；|Γ| = 1 时驻波比趋于无穷"
+      ],
+      "details": {
+        "latex": "\\mathrm{SWR}=\\frac{1+|\\Gamma|}{1-|\\Gamma|}",
+        "plain_text": "SWR = (1 + |Γ|)/(1 − |Γ|)",
+        "variables": [
+          {
+            "symbol": "SWR",
+            "name": "驻波比",
+            "quantity_id": "standing-wave-ratio",
+            "unit": "1",
+            "description": "电场或电压驻波的最大与最小振幅之比。"
+          },
+          {
+            "symbol": "Γ",
+            "name": "反射系数",
+            "quantity_id": null,
+            "unit": "1",
+            "description": "反射波与入射波在参考面处的复相量比。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "skin-depth-formula",
+      "name": "良导体趋肤深度公式",
+      "type": "formula",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "计算场振幅在良导体中衰减至表面值 1/e 所需的深度。",
+      "aliases": [
+        "趋肤深度计算式"
+      ],
+      "tags": [
+        "良导体",
+        "衰减",
+        "高频"
+      ],
+      "conditions": [
+        "均匀、线性、各向同性良导体，σ ≫ ωε",
+        "正弦稳态，材料参数在所考察频率取定"
+      ],
+      "details": {
+        "latex": "\\delta=\\frac{1}{\\alpha}\\approx\\sqrt{\\frac{2}{\\omega\\mu\\sigma}}",
+        "plain_text": "δ = 1/α ≈ √[2/(ωμσ)]",
+        "variables": [
+          {
+            "symbol": "δ",
+            "name": "趋肤深度",
+            "quantity_id": "skin-depth",
+            "unit": "m",
+            "description": "振幅衰减至表面值 1/e 的深度。"
+          },
+          {
+            "symbol": "α",
+            "name": "衰减常数",
+            "quantity_id": "attenuation-constant",
+            "unit": "Np/m",
+            "description": "场振幅的衰减常数。"
+          },
+          {
+            "symbol": "ω",
+            "name": "角频率",
+            "quantity_id": null,
+            "unit": "rad/s",
+            "description": "场的角频率。"
+          },
+          {
+            "symbol": "μ",
+            "name": "磁导率",
+            "quantity_id": "permeability",
+            "unit": "H/m",
+            "description": "导体磁导率。"
+          },
+          {
+            "symbol": "σ",
+            "name": "电导率",
+            "quantity_id": "conductivity",
+            "unit": "S/m",
+            "description": "导体电导率。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "impedance-matching",
+      "name": "阻抗匹配",
+      "type": "concept",
+      "chapter_id": "electromagnetic-wave",
+      "summary": "使传播通道与负载或相邻介质的阻抗相适应，以减小反射。",
+      "aliases": [
+        "无反射匹配"
+      ],
+      "tags": [
+        "传输线",
+        "反射",
+        "负载"
+      ],
+      "conditions": [
+        "这里的无反射匹配针对无耗传输线或正入射平面波界面"
+      ],
+      "details": {
+        "definition": "对无耗传输线，当负载阻抗等于特性阻抗时负载反射系数为零；平面波正入射两介质界面时，波阻抗相等也使反射消失。",
+        "key_points": [
+          "匹配时驻波比为 1",
+          "传输线负载反射系数为 (Z_L − Z_0)/(Z_L + Z_0)",
+          "传输线的无反射匹配与电源最大功率传输的共轭匹配应按问题分别使用"
+        ],
+        "common_misconceptions": [
+          "阻抗匹配取决于工作频率，不能仅比较直流电阻"
+        ]
+      }
     }
   ],
   "relations": [
@@ -2265,7 +4149,7 @@
       "source_id": "maxwell-equations",
       "target_id": "wave-equation",
       "type": "derives",
-      "description": "在均匀、线性、无源介质中，对麦克斯韦方程组取旋度并结合物质关系，可以推导出波动方程。"
+      "description": "在均匀、线性、各向同性、无源且无耗介质中，用二次旋度恒等式消去磁场，可由麦克斯韦方程组得到电场波动方程。"
     },
     {
       "source_id": "faraday-law-differential-form",
@@ -2866,6 +4750,738 @@
       "target_id": "faraday-law-differential-form",
       "type": "prerequisite",
       "description": "法拉第定律微分形式用旋度表达。"
+    },
+    {
+      "source_id": "scalar-field",
+      "target_id": "gradient",
+      "type": "prerequisite",
+      "description": "先理解空间标量函数，才能理解它的梯度。"
+    },
+    {
+      "source_id": "scalar-field",
+      "target_id": "electric-potential",
+      "type": "prerequisite",
+      "description": "电位是描述静电场的空间标量函数。"
+    },
+    {
+      "source_id": "scalar-field",
+      "target_id": "charge-density",
+      "type": "prerequisite",
+      "description": "电荷体密度在空间中构成标量场。"
+    },
+    {
+      "source_id": "gradient",
+      "target_id": "laplacian",
+      "type": "prerequisite",
+      "description": "拉普拉斯算子可由标量场梯度再取散度构造。"
+    },
+    {
+      "source_id": "divergence",
+      "target_id": "laplacian",
+      "type": "prerequisite",
+      "description": "理解拉普拉斯算子需要理解梯度的散度。"
+    },
+    {
+      "source_id": "laplacian",
+      "target_id": "poisson-equation",
+      "type": "prerequisite",
+      "description": "泊松方程用拉普拉斯算子描述电位与电荷密度的关系。"
+    },
+    {
+      "source_id": "laplacian",
+      "target_id": "laplace-equation",
+      "type": "prerequisite",
+      "description": "拉普拉斯方程要求电位的拉普拉斯算子为零。"
+    },
+    {
+      "source_id": "laplacian",
+      "target_id": "wave-equation",
+      "type": "prerequisite",
+      "description": "波动方程含有场量的空间拉普拉斯算子。"
+    },
+    {
+      "source_id": "curl",
+      "target_id": "conservative-field",
+      "type": "prerequisite",
+      "description": "在单连通区域内，可通过无旋条件判断场的保守性。"
+    },
+    {
+      "source_id": "conservative-field",
+      "target_id": "electric-potential",
+      "type": "prerequisite",
+      "description": "静电场的路径无关性允许引入标量电位。"
+    },
+    {
+      "source_id": "conservative-field",
+      "target_id": "electrostatic-curl-equation",
+      "type": "related_to",
+      "description": "静电场无旋性与保守性相联系，全局判断还需考虑区域的连通性。"
+    },
+    {
+      "source_id": "gradient",
+      "target_id": "gradient-cartesian-formula",
+      "type": "prerequisite",
+      "description": "梯度概念通过直角坐标下的三个偏导数具体计算。"
+    },
+    {
+      "source_id": "gradient-cartesian-formula",
+      "target_id": "potential-gradient-relation",
+      "type": "prerequisite",
+      "description": "用梯度的坐标表达式可由已知电位求电场分量。"
+    },
+    {
+      "source_id": "curl",
+      "target_id": "curl-curl-identity",
+      "type": "prerequisite",
+      "description": "二次旋度恒等式建立在旋度运算的基础上。"
+    },
+    {
+      "source_id": "laplacian",
+      "target_id": "curl-curl-identity",
+      "type": "prerequisite",
+      "description": "二次旋度恒等式中包含矢量拉普拉斯算子。"
+    },
+    {
+      "source_id": "curl-curl-identity",
+      "target_id": "wave-equation",
+      "type": "prerequisite",
+      "description": "对麦克斯韦旋度方程再次取旋度时，用该恒等式整理空间微分项。"
+    },
+    {
+      "source_id": "superposition-principle",
+      "target_id": "method-of-images",
+      "type": "prerequisite",
+      "description": "镜像法通过真实电荷与镜像电荷的场叠加构造解。"
+    },
+    {
+      "source_id": "method-of-images",
+      "target_id": "superposition-principle",
+      "type": "uses",
+      "description": "在线性静电问题中叠加真实电荷与镜像电荷的电位。"
+    },
+    {
+      "source_id": "superposition-principle",
+      "target_id": "biot-savart-law",
+      "type": "prerequisite",
+      "description": "任意恒定电流分布的磁场由各电流元的贡献叠加得到。"
+    },
+    {
+      "source_id": "superposition-principle",
+      "target_id": "standing-wave",
+      "type": "prerequisite",
+      "description": "驻波分布由入射波与反射波的线性叠加形成。"
+    },
+    {
+      "source_id": "superposition-principle",
+      "target_id": "antenna",
+      "type": "applies_to",
+      "description": "天线阵列在线性介质中的辐射场可由各辐射单元的场叠加计算。"
+    },
+    {
+      "source_id": "charge-density",
+      "target_id": "gauss-law-differential-form",
+      "type": "prerequisite",
+      "description": "微分形式用电荷体密度表示电场的局部源。"
+    },
+    {
+      "source_id": "charge-density",
+      "target_id": "dielectric-gauss-law-differential",
+      "type": "prerequisite",
+      "description": "介质中电位移的散度等于自由电荷体密度。"
+    },
+    {
+      "source_id": "charge-density",
+      "target_id": "poisson-equation",
+      "type": "prerequisite",
+      "description": "在均匀线性各向同性介质中，自由电荷体密度决定电位的泊松方程源项。"
+    },
+    {
+      "source_id": "charge-density",
+      "target_id": "current-continuity-equation",
+      "type": "prerequisite",
+      "description": "连续性方程联系电荷体密度变化与电流密度的散度。"
+    },
+    {
+      "source_id": "polarization",
+      "target_id": "polarization-vector",
+      "type": "defines",
+      "description": "极化强度以单位体积电偶极矩描述介质极化程度。"
+    },
+    {
+      "source_id": "electric-dipole-moment",
+      "target_id": "polarization-vector",
+      "type": "prerequisite",
+      "description": "极化强度是单位体积内电偶极矩的矢量和。"
+    },
+    {
+      "source_id": "polarization-vector",
+      "target_id": "electric-displacement-polarization-relation",
+      "type": "prerequisite",
+      "description": "电位移中由介质极化贡献的部分用极化强度表示。"
+    },
+    {
+      "source_id": "electric-displacement-polarization-relation",
+      "target_id": "constitutive-relations",
+      "type": "related_to",
+      "description": "在线性各向同性介质中代入极化响应，可得到 D = εE 这一特例。"
+    },
+    {
+      "source_id": "gauss-law",
+      "target_id": "dielectric-gauss-law-integral",
+      "type": "expresses",
+      "description": "宏观介质中的高斯定律可写成电位移通量等于包围的自由电荷量。"
+    },
+    {
+      "source_id": "divergence-theorem",
+      "target_id": "dielectric-gauss-law-integral",
+      "type": "prerequisite",
+      "description": "散度定理连接介质中高斯定律的积分形式与微分形式。"
+    },
+    {
+      "source_id": "dielectric-gauss-law-integral",
+      "target_id": "dielectric-gauss-law-differential",
+      "type": "equivalent_to",
+      "description": "在场量足够光滑的区域，两种形式通过散度定理转换，界面另用边界条件描述。"
+    },
+    {
+      "source_id": "dielectric-gauss-law-integral",
+      "target_id": "parallel-plate-capacitance",
+      "type": "derives",
+      "description": "结合平行板的近似均匀场、电位差与电容定义，可求得 C = εA/d。"
+    },
+    {
+      "source_id": "conductor-electrostatic-equilibrium",
+      "target_id": "method-of-images",
+      "type": "prerequisite",
+      "description": "导体等位和接地条件是构造镜像电荷解时需要满足的边界条件。"
+    },
+    {
+      "source_id": "electrostatic-boundary-conditions",
+      "target_id": "conductor-electrostatic-equilibrium",
+      "type": "describes",
+      "description": "静电平衡导体的零内部场和等位表面须与外部电场边界条件相容。"
+    },
+    {
+      "source_id": "conductor-electrostatic-equilibrium",
+      "target_id": "parallel-plate-capacitor",
+      "type": "applies_to",
+      "description": "平行板电容器的每个金属极板在静态下可视为等位体。"
+    },
+    {
+      "source_id": "electric-field-intensity",
+      "target_id": "electrostatic-energy-density",
+      "type": "prerequisite",
+      "description": "电场能量密度由电场强度与电位移共同确定。"
+    },
+    {
+      "source_id": "electrostatic-energy-density",
+      "target_id": "poynting-theorem-differential-form",
+      "type": "prerequisite",
+      "description": "局部电磁能量守恒需要计入电场的储能密度。"
+    },
+    {
+      "source_id": "electrostatic-energy-density",
+      "target_id": "parallel-plate-capacitor",
+      "type": "applies_to",
+      "description": "对板间电场能量密度积分，可求电容器储存的电场能量。"
+    },
+    {
+      "source_id": "capacitance",
+      "target_id": "capacitance-definition",
+      "type": "prerequisite",
+      "description": "电容定义式具体给出电容与电荷量、电位差的关系。"
+    },
+    {
+      "source_id": "capacitance-definition",
+      "target_id": "parallel-plate-capacitance",
+      "type": "derives",
+      "description": "将近似均匀电场求得的电位差代入电容定义，得到平行板电容公式。"
+    },
+    {
+      "source_id": "parallel-plate-capacitance",
+      "target_id": "parallel-plate-capacitor",
+      "type": "applies_to",
+      "description": "该公式用于计算忽略边缘效应时平行板电容器的电容。"
+    },
+    {
+      "source_id": "charge-conservation-law",
+      "target_id": "current-continuity-equation",
+      "type": "expresses",
+      "description": "固定体积中净电荷变化与边界电流输运的守恒关系可写成连续性方程。"
+    },
+    {
+      "source_id": "charge-conservation-law",
+      "target_id": "steady-current-field",
+      "type": "prerequisite",
+      "description": "稳恒状态下没有电荷持续积累，因此电流密度散度为零。"
+    },
+    {
+      "source_id": "charge-conservation-law",
+      "target_id": "displacement-current",
+      "type": "prerequisite",
+      "description": "引入位移电流使时变场的安培方程与电荷守恒一致。"
+    },
+    {
+      "source_id": "steady-current-field",
+      "target_id": "steady-current-equation",
+      "type": "prerequisite",
+      "description": "恒定电流场的电荷密度不随时间变化，连续性方程化为 ∇·J = 0。"
+    },
+    {
+      "source_id": "steady-current-field",
+      "target_id": "steady-current-boundary-conditions",
+      "type": "prerequisite",
+      "description": "界面连续条件需要结合稳恒状态下无电荷积累的要求。"
+    },
+    {
+      "source_id": "current-density",
+      "target_id": "current-density-integral",
+      "type": "prerequisite",
+      "description": "电流是电流密度对指定曲面的通量。"
+    },
+    {
+      "source_id": "current-density-integral",
+      "target_id": "electric-current",
+      "type": "defines",
+      "description": "电流密度的曲面积分给出穿过该曲面的总电流。"
+    },
+    {
+      "source_id": "current-continuity-equation",
+      "target_id": "steady-current-boundary-conditions",
+      "type": "derives",
+      "description": "在无表面电流层且无电荷积累的界面，连续性方程给出法向电流密度连续条件。"
+    },
+    {
+      "source_id": "electrostatic-curl-equation",
+      "target_id": "steady-current-boundary-conditions",
+      "type": "prerequisite",
+      "description": "磁场不随时间变化时电场无旋，给出切向电场连续条件。"
+    },
+    {
+      "source_id": "ohm-law",
+      "target_id": "ohm-law-differential-form",
+      "type": "expresses",
+      "description": "线性各向同性导体中，欧姆定律的局部形式为 J = σE。"
+    },
+    {
+      "source_id": "ohm-law",
+      "target_id": "electrical-resistance",
+      "type": "defines",
+      "description": "线性电阻元件的电压与电流比例给出电阻。"
+    },
+    {
+      "source_id": "ohm-law-differential-form",
+      "target_id": "uniform-conductor-resistance",
+      "type": "derives",
+      "description": "对均匀直导体积分局部欧姆关系，结合电流密度面积分得到 R = ℓ/(σA)。"
+    },
+    {
+      "source_id": "electrical-resistance",
+      "target_id": "uniform-conductor-resistance",
+      "type": "prerequisite",
+      "description": "电阻公式用于求固定材料和几何结构导体的电阻参数。"
+    },
+    {
+      "source_id": "current-density-integral",
+      "target_id": "uniform-conductor-resistance",
+      "type": "prerequisite",
+      "description": "将均匀电流密度乘以截面积得到总电流，再与端口电压联系。"
+    },
+    {
+      "source_id": "uniform-conductor-resistance",
+      "target_id": "resistor",
+      "type": "applies_to",
+      "description": "可通过材料电导率、长度与截面积设计电阻器的电阻值。"
+    },
+    {
+      "source_id": "ohm-law",
+      "target_id": "resistor",
+      "type": "applies_to",
+      "description": "在线性工作区，电阻器的端口电压和电流满足欧姆定律。"
+    },
+    {
+      "source_id": "joule-law-differential-form",
+      "target_id": "resistor",
+      "type": "applies_to",
+      "description": "对电阻材料中的热功率密度积分可得到电阻器发热功率。"
+    },
+    {
+      "source_id": "steady-current-boundary-conditions",
+      "target_id": "electrostatic-boundary-conditions",
+      "type": "related_to",
+      "description": "两者都约束切向电场；法向条件分别对应电流守恒与自由面电荷。"
+    },
+    {
+      "source_id": "magnetic-flux-density",
+      "target_id": "magnetic-flux",
+      "type": "prerequisite",
+      "description": "磁通量由磁感应强度穿过曲面的通量定义。"
+    },
+    {
+      "source_id": "magnetic-flux",
+      "target_id": "faraday-law",
+      "type": "prerequisite",
+      "description": "法拉第定律以穿过回路的磁通量变化率确定感应电动势。"
+    },
+    {
+      "source_id": "magnetic-flux",
+      "target_id": "inductance-definition",
+      "type": "prerequisite",
+      "description": "自感系数用线圈电流产生的磁链定义，磁链由各匝磁通累加。"
+    },
+    {
+      "source_id": "magnetic-gauss-law",
+      "target_id": "magnetic-flux",
+      "type": "describes",
+      "description": "任意闭合曲面的净磁通量为零，体现磁通连续性。"
+    },
+    {
+      "source_id": "magnetization",
+      "target_id": "magnetization-vector",
+      "type": "defines",
+      "description": "磁化强度是描述单位体积磁偶极矩的物理量。"
+    },
+    {
+      "source_id": "magnetization-vector",
+      "target_id": "magnetic-constitutive-relation",
+      "type": "prerequisite",
+      "description": "磁感应强度的宏观表达式显式包含材料的磁化强度。"
+    },
+    {
+      "source_id": "magnetic-constitutive-relation",
+      "target_id": "constitutive-relations",
+      "type": "related_to",
+      "description": "代入线性磁化关系后，宏观磁场关系化为 B = μH。"
+    },
+    {
+      "source_id": "magnetization",
+      "target_id": "polarization",
+      "type": "related_to",
+      "description": "两者分别以磁偶极矩和电偶极矩描述材料对场的宏观响应。"
+    },
+    {
+      "source_id": "lorentz-force-law",
+      "target_id": "lorentz-force-formula",
+      "type": "expresses",
+      "description": "洛伦兹力公式将电场力和磁场力统一写为 q(E + v×B)。"
+    },
+    {
+      "source_id": "magnetic-flux-density",
+      "target_id": "lorentz-force-law",
+      "type": "prerequisite",
+      "description": "带电粒子的磁场受力由磁感应强度 B 决定。"
+    },
+    {
+      "source_id": "electric-field-intensity",
+      "target_id": "lorentz-force-law",
+      "type": "prerequisite",
+      "description": "带电粒子的电场受力由电场强度 E 决定。"
+    },
+    {
+      "source_id": "electric-current",
+      "target_id": "biot-savart-law",
+      "type": "prerequisite",
+      "description": "恒定电流是毕奥-萨伐尔定律中的磁场源。"
+    },
+    {
+      "source_id": "biot-savart-law",
+      "target_id": "biot-savart-law-formula",
+      "type": "expresses",
+      "description": "闭合载流细导线的磁感应强度由电流线元叉积的积分求得。"
+    },
+    {
+      "source_id": "biot-savart-law-formula",
+      "target_id": "superposition-principle",
+      "type": "uses",
+      "description": "对各电流线元产生的磁场进行积分叠加。"
+    },
+    {
+      "source_id": "magnetic-field-intensity",
+      "target_id": "magnetic-energy-density",
+      "type": "prerequisite",
+      "description": "线性介质中的磁场能量密度由 B 与 H 的点积确定。"
+    },
+    {
+      "source_id": "magnetic-energy-density",
+      "target_id": "poynting-theorem-differential-form",
+      "type": "prerequisite",
+      "description": "局部电磁能量守恒需计入磁场储能的时间变化。"
+    },
+    {
+      "source_id": "magnetic-energy-density",
+      "target_id": "electrostatic-energy-density",
+      "type": "related_to",
+      "description": "它们分别构成线性无色散介质中电磁场总能量的磁场部分和电场部分。"
+    },
+    {
+      "source_id": "inductance",
+      "target_id": "inductance-definition",
+      "type": "prerequisite",
+      "description": "定义式明确线性线圈自感系数与磁链、电流之间的关系。"
+    },
+    {
+      "source_id": "inductance-definition",
+      "target_id": "capacitance-definition",
+      "type": "related_to",
+      "description": "电感与电容分别联系磁链和电流、电荷和电位差，描述两类场储能元件。"
+    },
+    {
+      "source_id": "faraday-law",
+      "target_id": "electromotive-force",
+      "type": "describes",
+      "description": "磁通量变化产生感应电动势，其方向由负号体现。"
+    },
+    {
+      "source_id": "electromotive-force",
+      "target_id": "electromagnetic-induction",
+      "type": "prerequisite",
+      "description": "感应电动势是描述电磁感应回路驱动作用的物理量。"
+    },
+    {
+      "source_id": "displacement-current",
+      "target_id": "displacement-current-density",
+      "type": "defines",
+      "description": "位移电流以电位移随时间变化的矢量密度表示。"
+    },
+    {
+      "source_id": "displacement-current",
+      "target_id": "displacement-current-density-formula",
+      "type": "prerequisite",
+      "description": "位移电流密度由电位移对时间的偏导数计算。"
+    },
+    {
+      "source_id": "displacement-current-density-formula",
+      "target_id": "displacement-current-density",
+      "type": "defines",
+      "description": "J_d = ∂D/∂t 给出位移电流密度的定量定义。"
+    },
+    {
+      "source_id": "displacement-current-density-formula",
+      "target_id": "maxwell-ampere-integral-form",
+      "type": "prerequisite",
+      "description": "回路所张曲面上的位移电流通量补充了传导电流贡献。"
+    },
+    {
+      "source_id": "maxwell-equations",
+      "target_id": "maxwell-ampere-integral-form",
+      "type": "expresses",
+      "description": "麦克斯韦方程组的一条积分方程描述磁场环量与总电流的关系。"
+    },
+    {
+      "source_id": "maxwell-ampere-integral-form",
+      "target_id": "maxwell-ampere-differential-form",
+      "type": "equivalent_to",
+      "description": "在场足够光滑的区域，用斯托克斯定理可在积分与微分形式之间转换。"
+    },
+    {
+      "source_id": "stokes-theorem",
+      "target_id": "maxwell-ampere-integral-form",
+      "type": "prerequisite",
+      "description": "斯托克斯定理连接磁场环量和旋度的曲面积分。"
+    },
+    {
+      "source_id": "maxwell-equations",
+      "target_id": "electromagnetic-boundary-conditions",
+      "type": "derives",
+      "description": "对跨越固定界面的薄小体积与回路应用积分方程，可得到法向和切向边界条件。"
+    },
+    {
+      "source_id": "electrostatic-boundary-conditions",
+      "target_id": "electromagnetic-boundary-conditions",
+      "type": "prerequisite",
+      "description": "静电场界面条件是理解完整电磁场边界条件的基础。"
+    },
+    {
+      "source_id": "electromagnetic-boundary-conditions",
+      "target_id": "reflection-transmission",
+      "type": "prerequisite",
+      "description": "入射、反射和透射场在分界面上须满足电磁场边界条件。"
+    },
+    {
+      "source_id": "poynting-theorem",
+      "target_id": "poynting-theorem-differential-form",
+      "type": "expresses",
+      "description": "局部形式将能流、储能变化和电场对电流做功写在同一守恒方程中。"
+    },
+    {
+      "source_id": "maxwell-equations",
+      "target_id": "poynting-theorem-differential-form",
+      "type": "derives",
+      "description": "将两条旋度方程与场量点乘并使用矢量恒等式，可得到局部电磁能量守恒。"
+    },
+    {
+      "source_id": "time-harmonic-field",
+      "target_id": "phasor-method",
+      "type": "prerequisite",
+      "description": "单一角频率的正弦时间变化允许用复数相量表示场量。"
+    },
+    {
+      "source_id": "phasor-method",
+      "target_id": "time-harmonic-field",
+      "type": "uses",
+      "description": "相量法利用时谐场的统一频率，将时间导数替换为 jω。"
+    },
+    {
+      "source_id": "phasor-method",
+      "target_id": "time-harmonic-maxwell-curl-equations",
+      "type": "prerequisite",
+      "description": "采用统一的复数时间因子后，时域旋度方程可以写成频域形式。"
+    },
+    {
+      "source_id": "maxwell-equations",
+      "target_id": "time-harmonic-maxwell-curl-equations",
+      "type": "expresses",
+      "description": "在线性各向同性欧姆介质中，两条旋度方程可用 E、H 的复相量表示。"
+    },
+    {
+      "source_id": "constitutive-relations",
+      "target_id": "time-harmonic-maxwell-curl-equations",
+      "type": "prerequisite",
+      "description": "使用 B = μH、D = εE 与 J = σE 将频域方程写成两个场相量的形式。"
+    },
+    {
+      "source_id": "attenuation-constant",
+      "target_id": "propagation-constant",
+      "type": "prerequisite",
+      "description": "传播常数的实部表示振幅衰减常数。"
+    },
+    {
+      "source_id": "phase-constant",
+      "target_id": "propagation-constant",
+      "type": "prerequisite",
+      "description": "传播常数的虚部表示相位随距离的变化率。"
+    },
+    {
+      "source_id": "phase-constant",
+      "target_id": "wavelength",
+      "type": "related_to",
+      "description": "均匀介质行波的相位常数满足 β = 2π/λ。"
+    },
+    {
+      "source_id": "phase-constant",
+      "target_id": "phase-velocity",
+      "type": "related_to",
+      "description": "均匀介质行波的相速满足 v_p = ω/β。"
+    },
+    {
+      "source_id": "propagation-constant",
+      "target_id": "complex-propagation-constant-formula",
+      "type": "prerequisite",
+      "description": "计算复传播常数需要明确振幅衰减与相位变化的定义和符号约定。"
+    },
+    {
+      "source_id": "time-harmonic-maxwell-curl-equations",
+      "target_id": "complex-propagation-constant-formula",
+      "type": "derives",
+      "description": "在均匀欧姆介质中消去一个场量并采用行波解，可得到传播常数的平方根表达式。"
+    },
+    {
+      "source_id": "complex-propagation-constant-formula",
+      "target_id": "skin-depth-formula",
+      "type": "derives",
+      "description": "在 σ 远大于 ωε 的良导体极限下，取衰减常数的倒数得到趋肤深度。"
+    },
+    {
+      "source_id": "complex-propagation-constant-formula",
+      "target_id": "wave-number-relation",
+      "type": "related_to",
+      "description": "电导率为零时传播常数为 jβ，相位常数回到无耗介质波数。"
+    },
+    {
+      "source_id": "attenuation-constant",
+      "target_id": "skin-depth",
+      "type": "related_to",
+      "description": "对于指数衰减行波，趋肤深度等于振幅衰减常数的倒数。"
+    },
+    {
+      "source_id": "skin-depth",
+      "target_id": "skin-depth-formula",
+      "type": "prerequisite",
+      "description": "计算式把振幅衰减至 1/e 的深度写成频率与材料参数的函数。"
+    },
+    {
+      "source_id": "skin-depth-formula",
+      "target_id": "skin-effect",
+      "type": "describes",
+      "description": "趋肤深度的数量级用于判断高频导体电流集中在多厚的表面层内。"
+    },
+    {
+      "source_id": "electromagnetic-boundary-conditions",
+      "target_id": "normal-incidence-reflection-coefficient",
+      "type": "derives",
+      "description": "正入射时，使用切向 E、H 连续条件和行波波阻抗关系可求电场反射系数。"
+    },
+    {
+      "source_id": "wave-impedance",
+      "target_id": "normal-incidence-reflection-coefficient",
+      "type": "prerequisite",
+      "description": "正入射电场反射系数由两侧介质的波阻抗决定。"
+    },
+    {
+      "source_id": "normal-incidence-reflection-coefficient",
+      "target_id": "reflection-transmission",
+      "type": "describes",
+      "description": "反射系数定量给出正入射时反射电场相对于入射电场的幅值与相位。"
+    },
+    {
+      "source_id": "reflection-transmission",
+      "target_id": "standing-wave",
+      "type": "prerequisite",
+      "description": "反射波与入射波在同一区域叠加后可形成驻波分布。"
+    },
+    {
+      "source_id": "standing-wave",
+      "target_id": "standing-wave-ratio",
+      "type": "defines",
+      "description": "驻波比用振幅最大值与最小值之比描述驻波起伏程度。"
+    },
+    {
+      "source_id": "standing-wave",
+      "target_id": "standing-wave-ratio-formula",
+      "type": "prerequisite",
+      "description": "由同频同极化反向波的叠加幅值可求驻波比与反射系数的关系。"
+    },
+    {
+      "source_id": "standing-wave-ratio-formula",
+      "target_id": "standing-wave-ratio",
+      "type": "defines",
+      "description": "无耗传播区域中可用反射系数的模计算驻波比。"
+    },
+    {
+      "source_id": "normal-incidence-reflection-coefficient",
+      "target_id": "standing-wave-ratio-formula",
+      "type": "prerequisite",
+      "description": "正入射问题中先由介质波阻抗求反射系数，再计算驻波比。"
+    },
+    {
+      "source_id": "standing-wave",
+      "target_id": "transmission-line",
+      "type": "applies_to",
+      "description": "传输线上的电压、电流由入射波和反射波叠加，可形成行驻波。"
+    },
+    {
+      "source_id": "standing-wave-ratio",
+      "target_id": "impedance-matching",
+      "type": "prerequisite",
+      "description": "驻波比为 1 对应无反射，是判断无耗通道匹配的指标。"
+    },
+    {
+      "source_id": "normal-incidence-reflection-coefficient",
+      "target_id": "impedance-matching",
+      "type": "prerequisite",
+      "description": "正入射时两侧波阻抗相等，反射系数为零。"
+    },
+    {
+      "source_id": "impedance-matching",
+      "target_id": "transmission-line",
+      "type": "applies_to",
+      "description": "无耗传输线将负载阻抗匹配至特性阻抗，可消除负载反射。"
+    },
+    {
+      "source_id": "impedance-matching",
+      "target_id": "antenna",
+      "type": "applies_to",
+      "description": "将馈线与天线端口阻抗匹配，可减少馈电回路的反射功率。"
     }
   ]
 }
