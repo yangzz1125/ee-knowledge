@@ -4,7 +4,7 @@ import { chapterColor } from "./palette.js";
 /**
  * 全页共享状态。图谱、面板、问答都读写这里，彼此不直接调用。
  *
- * 高亮优先级（graph/model.js 的 computeEmphasis 实现）：悬停 > 学习路径 > 选中知识点 > AI 回答引用。
+ * 高亮优先级（graph/model.js 的 computeEmphasis 实现）：拖动 > 悬停 > 学习路径 > 选中知识点 > AI 回答引用。
  */
 export const store = reactive({
   status: "loading",            // loading | online | offline

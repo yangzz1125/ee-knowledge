@@ -6,6 +6,7 @@ import { chapterView, clearSelection, selectEntity, store } from "../store.js";
 
 const host = ref(null);
 const hoverId = ref(null);
+const dragId = ref(null);
 let renderer = null;
 let adjacency = null;
 let resizeObserver = null;
@@ -13,6 +14,7 @@ let tourTimers = [];
 
 function emphasis() {
   return computeEmphasis({
+    dragId: dragId.value,
     hoverId: hoverId.value,
     path: store.path,
     selectedId: store.selectedId,
@@ -32,6 +34,10 @@ function mount() {
       clearSelection();
     },
     onHover: id => { hoverId.value = id; },
+    onDrag: id => {
+      if (id) stopTour();
+      dragId.value = id;
+    },
     onLayoutReady: refocus,
   });
   const { width, height } = host.value.getBoundingClientRect();
@@ -76,7 +82,7 @@ onBeforeUnmount(() => {
 });
 
 watch(
-  () => [hoverId.value, store.path, store.selectedId, store.citedIds, store.entityType],
+  () => [dragId.value, hoverId.value, store.path, store.selectedId, store.citedIds, store.entityType],
   () => renderer?.applyStyle(emphasis()),
 );
 
